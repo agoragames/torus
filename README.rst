@@ -49,7 +49,7 @@ Schema
 ======
 
 The schema for `torus` is an extension of the `kairos` schema.  It is defined
-in a file reference on the command line, and includes the following:
+in a file reference on the command line, and includes the following: ::
 
     TIMESERIES = {
 
