@@ -10,6 +10,12 @@ import re
 from redis import Redis
 from kairos import Timeseries
 
+def long_or_float(v):
+  try:
+    return long(v)
+  except ValueError:
+    return float(v)
+
 class Schema(object):
   '''
   Implements the schema and associated data processing for data points.
@@ -20,8 +26,8 @@ class Schema(object):
     self._host = config.pop('host', 'redis://localhost:6379/0')
 
     config.setdefault('type', 'count')
-    config.setdefault('write_func', long)
-    config.setdefault('read_func', long)
+    config.setdefault('write_func', long_or_float)
+    config.setdefault('read_func', long_or_float)
 
     # parse the patterns and bind the Schema.match function
     # TODO: optimize this binding even further to reduce lookups at runtime
@@ -40,6 +46,13 @@ class Schema(object):
     self._client = self._init_client()
 
     self._timeseries = Timeseries(self._client, **config)
+
+  def store(self, stat, val, timestamp=None):
+    '''
+    Store a value in this schema.
+    '''
+    if self.match(stat):
+      self._timeseries.insert(stat, val, timestamp)
 
   def _match_single(self, stat):
     '''

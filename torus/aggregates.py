@@ -6,7 +6,7 @@ https://github.com/agoragames/torus/blob/master/LICENSE.txt
 
 import re
 
-STAR = '[a-zA-Z0-9]+'
+STAR = '[a-zA-Z0-9_-]+'
 
 class Aggregates(object):
   '''
