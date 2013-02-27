@@ -79,14 +79,14 @@ in a file reference on the command line, and includes the following: ::
 
         # Optional, is a function applied to all values read back from the
         # database. Without it, values will be strings. Must accept a string
-        # value and can return anything. Defaults to ``long_or_float``, which
+        # value and can return anything. Defaults to long_or_float, which
         # tries to cast to a long and failing that, cast to a float.
         read_func: float
 
         # Optional, is a function applied to all values when writing. Can be
         # used for histogram resolution, converting an object into an id, etc.
         # Must accept whatever can be inserted into a timeseries and return an
-        # object which can be cast to a string.  Defaults to ``long_or_float``,
+        # object which can be cast to a string.  Defaults to long_or_float,
         # which tries to cast to a long and failing that, cast to a float.
         write_func: lambda v: '%0.3f'%(v)
 
@@ -120,7 +120,7 @@ in a file reference on the command line, and includes the following: ::
     # Similar to Carbon aggregator but without the time buffer. Matching stats
     # will be processed through any matching schemas.  Is a list of tuples to
     # support rolling up any number of dissimilar stats into a single one. At
-    # this time key names must be in the character set ``[a-zA-Z0-9_-]``
+    # this time key names must be in the character set [a-zA-Z0-9_-]
     AGGREGATES = [
       ('application.rollup', 'application.count.*'),
       ('application.result.<code>', 'application.http.status.<code>'),
