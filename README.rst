@@ -117,7 +117,8 @@ in a file reference on the command line, and includes the following:
 
     # Similar to Carbon aggregator but without the time buffer. Matching stats
     # will be processed through any matching schemas.  Is a list of tuples to
-    # support rolling up any number of dissimilar stats into a single one.
+    # support rolling up any number of dissimilar stats into a single one. At
+    # this time key names must be in the character set [a-zA-Z0-9]
     AGGREGATES = [
       ('application.rollup', 'application.count.*'),
       ('application.result.<code>', 'application.http.status.<code>'),
@@ -174,3 +175,4 @@ Future
 * Investigate faster regular expression engines
 * Support for mongo when supported in kairos
 * UNIX domain sockets for redis (without an instance in the schema)
+* Expand supported stat naming (unicode, symbols, etc)

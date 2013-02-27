@@ -39,7 +39,6 @@ class Aggregate(object):
 
     source_pattern = []
     for src_comp in source:
-      #if MATCHER_MATCHER.match(src_comp):
       if src_comp.startswith('<') and src_comp.endswith('>'):
         source_pattern.append( '(?P%s%s)'%(src_comp, STAR) )
       elif src_comp=='*':

@@ -33,3 +33,6 @@ class AggregateTest(Chai):
     assert_equals( None, a.match('foo.bar') )
     assert_equals( None, a.match('foo.bur') )
     assert_equals( 'foo.bow', a.match('foo.bar.bow') )
+
+    a = Aggregate( 'foo.*.<env>.tee.<code>', 'foo.<env>.tee.<code>' )
+    assert_equals( 'foo.production.tee.404', a.match('foo.bar.production.tee.404') )
