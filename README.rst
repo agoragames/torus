@@ -1,11 +1,13 @@
-torus
+=====
+Torus
 =====
 
 A service implementing the Carbon protocol to store time series data using
 [kairos](https://github.com/agoragames/kairos) and an HTTP server to query 
 and analyze the data.
 
-## Motivation
+Motivation
+==========
 
 Kairos, an RRD-inspired Redis-backed library, provides an improved storage
 engine and many more features than most other systems backing statsd. Compared
@@ -17,7 +19,8 @@ to traditional disk stores such as RRD and Whisper, Torus adds:
 * non-buffering semantics for aggregate processing
 * consistent hashing of timestamps for ease in interleaving and interpolation
 
-## Carbon Server
+Carbon Server
+=============
 
 The `karbon` application runs the [Carbon](http://graphite.wikidot.com)-compatible
 stat collection application. It takes the following arguments:
@@ -28,7 +31,8 @@ The schema is documented below.
 
 TODO: say something more about the server itself, integrating with statsd, etc.
 
-## Query server
+Query Server
+============
 
 The `torus` application is a replacement for [Graphite](http://graphite.wikidot.com).
 It is not API compatible with Graphite though it does aim to be familiar to
@@ -41,7 +45,8 @@ It should share the same schema as `karbon`.
 
 TODO: document the URI API, integration features, etc.
 
-## Schema
+Schema
+======
 
 The schema for `torus` is an extension of the `kairos` schema.  It is defined
 in a file reference on the command line, and includes the following:
@@ -115,12 +120,16 @@ in a file reference on the command line, and includes the following:
     ]
 
 
-### Series Types
+Series Types
+------------
 
 TODO: discuss different series types and their features.
 
-### Hosts
+Hosts
+-----
 
-### Intervals
+Intervals
+---------
 
-### Aggregates
+Aggregates
+----------
