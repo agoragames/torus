@@ -1,0 +1,9 @@
+# Development requirements
+
+-r requirements.pip
+
+# mocking framework
+chai>=0.2.0
+
+# for running tests
+nose

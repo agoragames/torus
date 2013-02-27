@@ -58,15 +58,19 @@ in a file reference on the command line, and includes the following:
 
         # A dictionary similar to kairos with a few additions
 
-        # One of (series, histogram, count). Optional, defaults to "histogram".
+        # One of (series, histogram, count). Optional, defaults to "count".
         type: 'histogram'
 
-        # The host on which the timeseries is stored.
+        # The host on which the timeseries is stored. If no scheme defined,
+        # defaults to redis. If this is not a string, assumed to be a 
+        # connection instance and will be used natively (e.g. for Redis
+        # unix domain sockets).
         host: 'localhost:6379/0'
 
         # Patterns for any matching stats to store in this schema. If this is
         # a string, matches just one pattern, else if it's a list of strings,
-        # matches any of the patterns. The pattern will be escaped.
+        # matches any of the patterns. The pattern(s) will be used as-is in the
+        # python regex library with no flags.
         match: [ 'application.hits.*',  ]
 
         # Optional, is a prefix for all keys in this histogram. If supplied
@@ -75,13 +79,13 @@ in a file reference on the command line, and includes the following:
 
         # Optional, is a function applied to all values read back from the
         # database. Without it, values will be strings. Must accept a string
-        # value and can return anything.
+        # value and can return anything. Defaults to ``long``.
         read_func: float
 
         # Optional, is a function applied to all values when writing. Can be
         # used for histogram resolution, converting an object into an id, etc.
         # Must accept whatever can be inserted into a timeseries and return an
-        # object which can be cast to a string.
+        # object which can be cast to a string.  Defaults to ``long``.
         write_func: lambda v: '%0.3f'%(v)
 
         # Required, a dictionary of interval configurations in the form of:
@@ -133,3 +137,40 @@ Intervals
 
 Aggregates
 ----------
+
+
+Installation
+============
+
+Torus is available on `pypi <http://pypi.python.org/pypi/torus>`_ and can be installed using     ``pip`` ::
+
+  pip install torus
+
+
+If installing from source:
+
+* with development requirements (e.g. testing frameworks) ::
+
+    pip install -r development.pip
+
+* without development requirements ::
+
+    pip install -r requirements.pip
+
+Note that torus does not by default require 
+`hiredis <http://pypi.python.org/pypi/hiredis>`_ though it is
+strongly recommended.
+
+Tests
+=====
+
+Use `nose <https://github.com/nose-devs/nose/>`_ to run the test suite. ::
+
+  $ nosetests
+
+Future
+======
+
+* Investigate faster regular expression engines
+* Support for mongo when supported in kairos
+* UNIX domain sockets for redis (without an instance in the schema)
