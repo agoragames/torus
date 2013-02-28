@@ -20,11 +20,7 @@ class KarbonTcp(StreamServer):
     '''
     host = kwargs.get('host', '')
     port = kwargs.get('port', 2003)
-
     self._configuration = kwargs.get('configuration')
-    #self._schemas = kwargs.get('schemas')
-    #self._aggregates = kwargs.get('aggregates')
-
     super(KarbonTcp,self).__init__( (host,int(port)), self.handle )
 
   def handle(self, sock, address):
