@@ -14,15 +14,16 @@ class KarbonTcp(StreamServer):
   A TCP server implementing the Carbon protocol.
   '''
 
-  def __init__(self, **config):
+  def __init__(self, **kwargs):
     '''
     Initialize with the given configuration and start the server.
     '''
-    host = config.get('host', '')
-    port = config.get('port', 2003)
+    host = kwargs.get('host', '')
+    port = kwargs.get('port', 2003)
 
-    self._schemas = config.get('schemas')
-    self._aggregates = config.get('aggregates')
+    self._configuration = kwargs.get('configuration')
+    #self._schemas = kwargs.get('schemas')
+    #self._aggregates = kwargs.get('aggregates')
 
     super(KarbonTcp,self).__init__( (host,int(port)), self.handle )
 
@@ -60,9 +61,5 @@ class KarbonTcp(StreamServer):
 
       stat,val,timestamp = line.split()
       timestamp = long(timestamp)
-      aggregates = self._aggregates.match( stat )
 
-      for schema in self._schemas:
-        schema.store(stat,val,timestamp)
-        for ag in aggregates:
-          schema.store(ag,val,timestamp)
+      self._configuration.process(stat,val,timestamp)

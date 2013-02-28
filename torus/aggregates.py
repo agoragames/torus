@@ -13,11 +13,17 @@ class Aggregates(object):
   Implements the aggregating of stats through pattern matches.
   '''
 
-  def __init__(self, rules):
+  def __init__(self, rules=[]):
     '''
     Initialize with a list of aggregate rules.
     '''
     self._rules = []
+    self.add( rules )
+
+  def add(self, rules):
+    '''
+    Add a set of aggregate rules.
+    '''
     for target,source in rules:
       self._rules.append( Aggregate(source,target) )
 
