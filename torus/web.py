@@ -75,7 +75,9 @@ class Web(WSGIServer):
 
       if not schemas:
         rval.append( {
-          'stat' : stat_spec,
+          'stat' : stat,
+          'function' : func,
+          'target' : stat,  # graphite compatible key
           'datapoints' : []
         } )
       

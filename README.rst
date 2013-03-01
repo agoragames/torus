@@ -23,13 +23,21 @@ Carbon Server
 =============
 
 The `karbon` application runs the [Carbon](http://graphite.wikidot.com)-compatible
-stat collection application. It takes the following arguments:
+stat collection application. It is a drop-in replacement for the Carbon backend of
+[statsd](https://github.com/etsy/statsd). It takes the following arguments: ::
 
-    TODO: paste `karbon --help`
+    usage: karbon [-h] [--tcp TCP] [--config CONFIG]
+
+    Karbon, a Carbon-replacement data collection server
+
+    optional arguments:
+      -h, --help       show this help message and exit
+      --tcp TCP        TCP binding, in the form of "host:port", ":port", or "port"
+      --config CONFIG  Configuration file for schema and aggregates. Can be called
+                       multiple times for multple configuration files.
+
 
 The schema is documented below.
-
-TODO: say something more about the server itself, integrating with statsd, etc.
 
 Query Server
 ============
@@ -37,13 +45,75 @@ Query Server
 The `torus` application is a replacement for [Graphite](http://graphite.wikidot.com).
 It is not API compatible with Graphite though it does aim to be familiar to
 Graphite users and provides a graphite-compatible JSON format for ease in integrating
-with existing toolchains.
+with existing toolchains. ::
 
-    TODO: paste `torus --help`
+    usage: torus [-h] [--tcp TCP] [--config CONFIG]
 
-It should share the same schema as `karbon`.
+    Torus, a web server for mining data out of kairos
 
-TODO: document the URI API, integration features, etc.
+    optional arguments:
+      -h, --help       show this help message and exit
+      --tcp TCP        TCP binding, in the form of "host:port", ":port", or "port"
+      --config CONFIG  Configuration file for schema and aggregates. Can be called
+                       multiple times for multple configuration files.
+
+
+It should share the same schema as `karbon`.  ``torus`` will respond to ``http://$tcp/$command?$parameters`` for the following commands, where ``$parameters`` is a standard URL encoded parameter list.
+
+Commands
+--------
+
+/data
+#####
+
+
+Parameters
+**********
+
+Fetches data for one or more statistics and returns a list of objects for each statistic. Returns data from the first schema that matches a statistic.
+
+* stat
+
+    The name of the statistic to fetch. Each instance of the ``stat`` parameter
+    is interpreted as a separate statistic. The statistic can either be in the
+    form of ``$stat_name`` or ``$func($stat_name)``, where ``$func`` can be one of:
+
+    * avg - the average of each datapoints in each time slice.
+    * min - the minimum value of datapoints in each time slice. 
+    * max - the maximum value of datapoints in each time slice.
+    * sum - the sum of datapoints in each time slice.
+    * count - the number of datapoints in each time slice.
+
+* format
+
+    One of ``[graphite, json]``, where ``graphite`` is a Graphite-compatible json
+    format and ``json`` offers more nuanced representation of ``kairos``' data
+    structures.
+
+* condensed
+
+    One of ``[true, false]``, if ``kairos`` resolutions are configured for a 
+    schema, determines whether resolutions are flattened or returned as-is. 
+    Forced to ``true`` for ``graphite`` format.
+
+
+Returns
+*******
+
+A json structure. ::
+
+    [{
+      'function': 'avg',
+      'interval': 'hour',
+      'schema': 'calls',
+      'stat': 'calls.system',
+      'target': 'calls.system'
+      'datapoints': [[0.0391, 1362153600], [0, 1362157200]],
+
+     }, 
+     ...
+    ]
+
 
 Schema
 ======
@@ -174,6 +244,8 @@ Use `nose <https://github.com/nose-devs/nose/>`_ to run the test suite. ::
 Future
 ======
 
+* Expanded schema matching in torus' ``/data`` command
+* Date range and other parameters in torus' ``/data`` command
 * Investigate faster regular expression engines
 * Support for mongo when supported in kairos
 * UNIX domain sockets for redis (without an instance in the schema)
