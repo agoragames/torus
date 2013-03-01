@@ -37,7 +37,8 @@ stat collection application. It is a drop-in replacement for the Carbon backend 
                        multiple times for multple configuration files.
 
 
-The schema is documented below.
+The schema is documented below. To reload the schema(s), send a ``SIGHUP`` to
+the ``karbon`` process.
 
 Query Server
 ============
@@ -58,7 +59,12 @@ with existing toolchains. ::
                        multiple times for multple configuration files.
 
 
-It should share the same schema as `karbon`.  ``torus`` will respond to ``http://$tcp/$command?$parameters`` for the following commands, where ``$parameters`` is a standard URL encoded parameter list.
+It should share the same schema as ``karbon``, and also reloads the schema(s)
+it receives a ``SIGHUP``.  
+
+``torus`` will respond to ``http://$tcp/$command?$parameters`` for the 
+following commands, where ``$parameters`` is a standard URL encoded 
+parameter list.
 
 Commands
 --------
