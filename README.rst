@@ -9,7 +9,7 @@ and analyze the data.
 Motivation
 ==========
 
-Kairos, an RRD-inspired Redis-backed library, provides an improved storage
+Kairos, an RRD-inspired timeseries library, provides an improved storage
 engine and many more features than most other systems backing statsd. Compared
 to traditional disk stores such as RRD and Whisper, Torus adds:
 
