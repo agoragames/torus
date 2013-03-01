@@ -1,0 +1,8 @@
+include *.txt
+include *.pip
+include README.rst
+include MANIFEST.in
+recursive-include script/ *
+recursive-include bin/ *
+recursive-include torus/ *.py
+prune *.pyc

@@ -21,8 +21,9 @@ setup(
     url='https://github.com/agoragames/torus',
     license="LICENSE.txt",
     description='Carbon and Graphite replacement using Kairos for timeseries storage',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     keywords=['python', 'redis', 'time series', 'statistics'],
+    scripts=['bin/karbon', 'bin/torus'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: BSD License',

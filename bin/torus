@@ -5,8 +5,6 @@ Copyright (c) 2013, Agora Games, LLC All rights reserved.
 https://github.com/agoragames/torus/blob/master/LICENSE.txt
 '''
 import sys, os, argparse, re, signal
-sys.path.append(os.path.abspath("."))
-sys.path.append(os.path.abspath(".."))
 
 import gevent, gevent.monkey
 gevent.monkey.patch_all()
