@@ -37,6 +37,13 @@ class Configuration(object):
     for fname in self._files:
       self._load_source( fname )
 
+  def schemas(self, stat):
+    '''
+    Get the matching schemas for a stat, or an empty list if there aren't any.
+    '''
+    #return filter(None, (s.match(stat) for s in self._schemas))
+    return [s for s in self._schemas if s.match(stat)]
+
   def process(self, stat, val, timestamp=None):
     '''
     Process a stat through this configuration.

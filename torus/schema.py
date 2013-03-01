@@ -45,14 +45,20 @@ class Schema(object):
 
     self._client = self._init_client()
 
-    self._timeseries = Timeseries(self._client, **config)
+    # TODO: Remove the need for this and add accessors to Schema or Kairos
+    self.config = config
+    self.timeseries = Timeseries(self._client, **config)
+
+  @property
+  def name(self):
+    return self._name
 
   def store(self, stat, val, timestamp=None):
     '''
     Store a value in this schema.
     '''
     if self.match(stat):
-      self._timeseries.insert(stat, val, timestamp)
+      self.timeseries.insert(stat, val, timestamp)
 
   def _match_single(self, stat):
     '''

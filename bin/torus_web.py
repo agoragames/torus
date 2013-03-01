@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+'''
+Copyright (c) 2013, Agora Games, LLC All rights reserved.
+
+https://github.com/agoragames/torus/blob/master/LICENSE.txt
+'''
+import sys, os, argparse, re, signal
+sys.path.append(os.path.abspath("."))
+sys.path.append(os.path.abspath(".."))
+
+import gevent, gevent.monkey
+gevent.monkey.patch_all()
+
+from torus.configuration import Configuration
+from torus.web import Web
+
+parser = argparse.ArgumentParser(
+  description='Torus, a web server for mining data out of kairos')
+parser.add_argument('--tcp',
+  type=str, default='localhost:8080',
+  help='TCP binding, in the form of "host:port", ":port", or "port"')
+parser.add_argument('--config',
+  type=str, action='append', default=[],
+  help='Configuration file for schema and aggregates. Can be called multiple times for multple configuration files')
+
+args = parser.parse_args()
+
+bind_args = args.tcp.split(':')
+host,port = '',8080
+if re.match('[\d]+', bind_args[-1]):
+  port = int(bind_args.pop(-1))
+if len(bind_args):
+  host = bind_args[0]
+
+c = Configuration()
+for fname in args.config:
+  c.load( fname )
+
+server = Web( host=host, port=port, configuration=c )
+
+gevent.signal(signal.SIGINT, server.stop)
+gevent.signal(signal.SIGTERM, server.stop)
+gevent.signal(signal.SIGHUP, c.reload)
+
+try:
+  server.serve_forever()
+except KeyboardInterrupt:
+  pass

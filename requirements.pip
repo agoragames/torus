@@ -9,3 +9,6 @@ redis>=2.7.2
 gevent
 
 argparse
+
+# fast json writing
+ujson
