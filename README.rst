@@ -3,7 +3,7 @@ Torus
 =====
 
 A service implementing the Carbon protocol to store time series data using
-[kairos](https://github.com/agoragames/kairos) and an HTTP server to query 
+`kairos <https://github.com/agoragames/kairos>`_ and an HTTP server to query 
 and analyze the data.
 
 Motivation
@@ -22,9 +22,9 @@ to traditional disk stores such as RRD and Whisper, Torus adds:
 Carbon Server
 =============
 
-The `karbon` application runs the [Carbon](http://graphite.wikidot.com)-compatible
+The ``karbon`` application runs the `Carbon <http://graphite.wikidot.com>`_-compatible
 stat collection application. It is a drop-in replacement for the Carbon backend of
-[statsd](https://github.com/etsy/statsd). It takes the following arguments: ::
+`statsd <https://github.com/etsy/statsd>`_. It takes the following arguments: ::
 
     usage: karbon [-h] [--tcp TCP] [--config CONFIG]
 
@@ -43,7 +43,7 @@ the ``karbon`` process.
 Query Server
 ============
 
-The `torus` application is a replacement for [Graphite](http://graphite.wikidot.com).
+The `torus` application is a replacement for `Graphite <http://graphite.wikidot.com>`_.
 It is not API compatible with Graphite though it does aim to be familiar to
 Graphite users and provides a graphite-compatible JSON format for ease in integrating
 with existing toolchains. ::
