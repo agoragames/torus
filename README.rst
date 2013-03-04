@@ -256,3 +256,4 @@ Future
 * Support for mongo when supported in kairos
 * UNIX domain sockets for redis (without an instance in the schema)
 * Expand supported stat naming (unicode, symbols, etc)
+* A ``relay`` host type for forwarding karbon data to another Carbon-compatible host
