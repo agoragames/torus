@@ -65,7 +65,7 @@ class Web(WSGIServer):
         stat = func_match.groupdict()['stat']
       else:
         if format=='graphite':
-          func = 'avg'
+          func = 'mean'
         else:
           func = None
         stat = stat_spec
@@ -85,63 +85,15 @@ class Web(WSGIServer):
       schema = schemas[-1]
       intervals = schema.config['intervals'].keys()
       data = schema.timeseries.series(stat, intervals[-1], 
-        condensed=params['condensed'])
+        condensed=params['condensed'], transform=func)
       rval.append( {
         'stat' : stat,
         'function' : func,
         'target' : stat,  # graphite compatible key
         'schema' : schema.name,
         'interval' : intervals[-1],
-        'datapoints' : getattr(
-          self, '_format_%s'%(schema.config['type']))(data, func, params)
+        'datapoints' : data,
       } )
 
     start_response('200 OK', [('content-type','application/json')] )
-    return rval
-
-  
-  def _format_histogram(self, data, func, params):
-    rval = []
-    for timestamp,histogram in data.iteritems():
-      if func=='avg':
-        total = sum( k*v for k,v in histogram.iteritems() )
-        count = sum( histogram.values() )
-        val = float(total)/float(count) if count>0 else 0
-      elif func=='count':
-        val = sum(histogram.values())
-      elif func=='min':
-        val = min(histogram.keys() or [0])
-      elif func=='max':
-        val = max(histogram.keys() or [0])
-      elif func=='sum':
-        val = sum( k*v for k,v in histogram.iteritems() )
-      elif func is None:
-        val = histogram
-      rval.append( [val, timestamp] )
-    return rval
-  
-  def _format_series(self, data, func, params):
-    rval = []
-    for timestamp,series in data.iteritems():
-      if func=='avg':
-        total = sum( series )
-        count = len( series )
-        val = float(total)/float(count) if count>0 else 0
-      elif func=='count':
-        val = len( series )
-      elif func=='min':
-        val = min( series or [0])
-      elif func=='max':
-        val = max( series or [0])
-      elif func=='sum':
-        val = sum( series )
-      elif func is None:
-        val = series
-      rval.append( [val, timestamp] )
-    return rval
-
-  def _format_count(self, data, func, params):
-    rval = []
-    for timestamp,count in data.iteritems():
-      rval.append( [count, timestamp] )
     return rval

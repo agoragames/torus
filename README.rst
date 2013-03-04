@@ -252,7 +252,7 @@ Future
 
 * Expanded schema matching in torus' ``/data`` command
 * Date range and other parameters in torus' ``/data`` command
-* Investigate faster regular expression engines
+* Investigate faster regular expression engines. `pyre2 <https://github.com/facebook/pyre2>`_ is currently in the running.
 * Support for mongo when supported in kairos
 * UNIX domain sockets for redis (without an instance in the schema)
 * Expand supported stat naming (unicode, symbols, etc)
