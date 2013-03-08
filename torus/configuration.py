@@ -7,7 +7,7 @@ https://github.com/agoragames/torus/blob/master/LICENSE.txt
 import imp
 import hashlib
 
-from torus.schema import Schema
+from torus.schema import Schema, long_or_float
 from torus.aggregates import Aggregates
 
 class Configuration(object):
@@ -61,6 +61,7 @@ class Configuration(object):
     mod_name = hashlib.sha1(fname).hexdigest()
     with open(fname, 'r') as source:
       mod = imp.load_module( mod_name, source, fname, ('py','r',imp.PY_SOURCE) )
+      mod.__dict__['long_or_float'] = long_or_float
 
       schemas = getattr(mod,'SCHEMAS',{})
       aggregates = getattr(mod,'AGGREGATES',[])

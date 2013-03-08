@@ -16,10 +16,10 @@ parser = argparse.ArgumentParser(
   description='Karbon, a Carbon-replacement data collection server')
 parser.add_argument('--tcp',
   type=str, default='localhost:2003',
-  help='TCP binding, in the form of "host:port", ":port", or "port"')
+  help='TCP binding, in the form of "host:port", ":port", or "port". Defaults to "localhost:2003".')
 parser.add_argument('--config',
   type=str, action='append', default=[],
-  help='Configuration file for schema and aggregates. Can be called multiple times for multple configuration files'.)
+  help='Configuration file for schema and aggregates. Can be called multiple times for multple configuration files.')
 
 args = parser.parse_args()
 

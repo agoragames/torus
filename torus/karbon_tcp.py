@@ -30,32 +30,43 @@ class KarbonTcp(StreamServer):
     # We could in the future make these configurable
     sock.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
     sock.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE,1)
-    recv_size = sock.getsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF)
 
     while True:
       try:
+        recv_size = sock.getsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF)
         lines = sock.recv( recv_size )
         if not len(lines):
           sock.close()
           return
-      except EnvironmentError:
+      except EnvironmentError as e:
+        import traceback
+        traceback.print_exc()
         sock.close()
         return
 
       # spawn the line processing into another greenlet so that overhead of
       # communicating with store does not prevent reading more data points
       # from this client.
+      # TODO: handle when there's a partial last line and how to integrate
+      # that with the next batch of data read from the socket.
       gevent.spawn( self._process_lines, lines )
       
-
   def _process_lines(self, lines):
     '''
     Process all the datapoints that we read.
     '''
-    for line in lines.split('\n'):
-      if not len(line.strip()): continue
+    try:
+      for line in lines.split('\n'):
+        if not len(line.strip()): continue
 
-      stat,val,timestamp = line.split()
-      timestamp = long(timestamp)
+        try:
+          stat,val,timestamp = line.split()
+        except ValueError:
+          # TODO: Store like stasd failed lines
+          continue
+        timestamp = long(timestamp)
 
-      self._configuration.process(stat,val,timestamp)
+        self._configuration.process(stat,val,timestamp)
+    except Exception as e:
+      import traceback
+      traceback.print_exc()

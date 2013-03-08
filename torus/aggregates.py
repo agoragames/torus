@@ -40,6 +40,8 @@ class Aggregate(object):
   '''
 
   def __init__(self, source, target):
+    self._source = source
+    self._target = target
     source = source.split('.')
     target = target.split('.')
 
@@ -62,6 +64,9 @@ class Aggregate(object):
       else:
         target_format.append( target_comp )
     self._target_format = '.'.join( target_format )
+
+  def __repr__(self):
+    return self._source
 
   def match(self, stat):
     '''

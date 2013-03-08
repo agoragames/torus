@@ -157,6 +157,7 @@ in a file reference on the command line, and includes the following: ::
         # database. Without it, values will be strings. Must accept a string
         # value and can return anything. Defaults to long_or_float, which
         # tries to cast to a long and failing that, cast to a float.
+        # long_or_float is available for all schemas to use.
         read_func: float
 
         # Optional, is a function applied to all values when writing. Can be

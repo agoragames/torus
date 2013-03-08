@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(
   description='Torus, a web server for mining data out of kairos')
 parser.add_argument('--tcp',
   type=str, default='localhost:8080',
-  help='TCP binding, in the form of "host:port", ":port", or "port"')
+  help='TCP binding, in the form of "host:port", ":port", or "port". Defaults to "localhost:8080".')
 parser.add_argument('--config',
   type=str, action='append', default=[],
   help='Configuration file for schema and aggregates. Can be called multiple times for multple configuration files.')
