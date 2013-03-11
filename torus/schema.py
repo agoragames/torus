@@ -28,6 +28,7 @@ class Schema(object):
     config.setdefault('type', 'count')
     config.setdefault('write_func', long_or_float)
     config.setdefault('read_func', long_or_float)
+    self._transform = config.get('transform')
 
     # parse the patterns and bind the Schema.match function
     # TODO: optimize this binding even further to reduce lookups at runtime
@@ -58,6 +59,10 @@ class Schema(object):
     Store a value in this schema.
     '''
     if self.match(stat):
+      if self._transform:
+        stat,val = self._transform(stat,val)
+        if stat is None:
+          return
       self.timeseries.insert(stat, val, timestamp)
 
   def _match_single(self, stat):

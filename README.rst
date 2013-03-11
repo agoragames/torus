@@ -2,7 +2,7 @@
 Torus
 =====
 
-:Version: 0.1.1
+:Version: 0.1.2
 :Download: http://pypi.python.org/pypi/torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
@@ -158,6 +158,13 @@ in a file reference on the command line, and includes the following: ::
         # Optional, is a prefix for all keys in this histogram. If supplied
         # and it doesn't end with ":", it will be automatically appended.
         # prefix: 'application'
+
+        # Optional, allows one to replace the stat name and value with another.
+        # Takes two arguments and must return a tuple of two items (statistic,
+        # value). If the statistic is None, will skip writing the statistic.
+        # The value will be a string on input, and on output must be acceptable
+        # to any write_func defined.
+        # transform: lambda s,v: (None,None) if 0>long_or_float(v)>3.14 else (s,v)
 
         # Optional, is a function applied to all values read back from the
         # database. Without it, values will be strings. Must accept a string
