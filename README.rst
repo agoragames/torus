@@ -18,6 +18,7 @@ Kairos, an RRD-inspired timeseries library, provides an improved storage
 engine and many more features than most other systems backing statsd. Compared
 to traditional disk stores such as RRD and Whisper, Torus adds:
 
+* simple runtime for ease in development and deployment
 * abstraction on top of kairos for histograms, input and output processing
 * compact storage for sparse data points
 * scaling with per-schema hosting and sharding
