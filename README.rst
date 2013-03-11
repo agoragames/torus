@@ -19,11 +19,12 @@ engine and many more features than most other systems backing statsd. Compared
 to traditional disk stores such as RRD and Whisper, Torus adds:
 
 * simple runtime for ease in development and deployment
-* abstraction on top of kairos for histograms, input and output processing
+* abstraction on top of kairos for histograms
 * compact storage for sparse data points
 * scaling with per-schema hosting and sharding
 * non-buffering semantics for aggregate processing
 * consistent hashing of timestamps for ease in interleaving and interpolation
+* programmatic interface to data processing
 
 Carbon Server
 =============
