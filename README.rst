@@ -2,6 +2,11 @@
 Torus
 =====
 
+:Version: 0.1.1
+:Download: http://pypi.python.org/pypi/torus
+:Source: https://github.com/agoragames/torus
+:Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
+
 A service implementing the Carbon protocol to store time series data using
 `kairos <https://github.com/agoragames/kairos>`_ and an HTTP server to query 
 and analyze the data.
@@ -134,7 +139,7 @@ in a file reference on the command line, and includes the following: ::
 
         # A dictionary similar to kairos with a few additions
 
-        # One of (series, histogram, count). Optional, defaults to "count".
+        # One of (series, histogram, count, gauge). Optional, defaults to "count".
         type: 'histogram'
 
         # The host on which the timeseries is stored. If no scheme defined,
@@ -258,3 +263,4 @@ Future
 * UNIX domain sockets for redis (without an instance in the schema)
 * Expand supported stat naming (unicode, symbols, etc)
 * A ``relay`` host type for forwarding karbon data to another Carbon-compatible host
+* Schema migration tools

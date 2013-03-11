@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--tcp',
   type=str, default='localhost:8080',
   help='TCP binding, in the form of "host:port", ":port", or "port". Defaults to "localhost:8080".')
-parser.add_argument('--config',
+parser.add_argument('--schema',
   type=str, action='append', default=[],
   help='Configuration file for schema and aggregates. Can be called multiple times for multple configuration files.')
 
@@ -31,7 +31,7 @@ if len(bind_args):
   host = bind_args[0]
 
 c = Configuration()
-for fname in args.config:
+for fname in args.schema:
   c.load( fname )
 
 server = Web( host=host, port=port, configuration=c )

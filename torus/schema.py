@@ -95,7 +95,7 @@ class Schema(object):
       if ':' in location.netloc:
         host,port = location.netloc.split(':')
       else:
-        host,port = location,6379
+        host,port = location.netloc,6379
 
       # TODO: better matching here
       if location.path in ('', '/'):

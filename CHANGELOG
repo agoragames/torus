@@ -1,7 +1,12 @@
 master
 ======
 
-Upgrade to kairos 0.1.3 with bug fixes and relative date support
+Upgrade to kairos 0.1.4 with bug fixes and performance improvements, relative 
+date support and gauge type
+
+Fixed redis host parsing when no port defined
+
+Change command line parameter "--config" to "--schema"
 
 
 0.1.0
