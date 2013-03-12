@@ -19,7 +19,7 @@ parser.add_argument('--tcp',
   help='TCP binding, in the form of "host:port", ":port", or "port". Defaults to "localhost:2003".')
 parser.add_argument('--schema',
   type=str, action='append', default=[],
-  help='Configuration file for schema and aggregates. Can be called multiple times for multple configuration files.')
+  help='Configuration file for schema and aggregates. Can be called multiple times for multiple configuration files.')
 
 args = parser.parse_args()
 

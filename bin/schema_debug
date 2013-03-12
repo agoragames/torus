@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+'''
+Copyright (c) 2013, Agora Games, LLC All rights reserved.
+
+https://github.com/agoragames/torus/blob/master/LICENSE.txt
+'''
+import sys, os, argparse, re, signal
+
+import gevent, gevent.monkey
+gevent.monkey.patch_all()
+
+from torus.configuration import Configuration
+
+parser = argparse.ArgumentParser(
+  description='Debugging tool for schemas')
+parser.add_argument('--schema',
+  type=str, action='append', default=[],
+  help='Configuration file for schema and aggregates. Can be called multiple times for multiple configuration files.')
+parser.add_argument('strings',
+  type=str, nargs='+',
+  help='One or more input strings to test against the scheams')
+
+args = parser.parse_args()
+
+c = Configuration()
+for fname in args.schema:
+  c.load( fname )
+
+for s in args.strings:
+  print '===================================================='
+  print s
+  for schema in c._schemas:
+    if schema.match(s):
+      print '  schema:',schema.name
+  print ''
+  print 'AGGREGATES'
+  aggregates = c._aggregates.match(s)
+  for ag in aggregates:
+    print ag
+    for schema in c._schemas:
+      if schema.match(ag):
+        print '  schema:', schema.name
+    print ''
+  print '===================================================='
+  print ''

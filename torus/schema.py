@@ -62,8 +62,10 @@ class Schema(object):
       if self._transform:
         stat,val = self._transform(stat,val)
         if stat is None:
-          return
+          return False
       self.timeseries.insert(stat, val, timestamp)
+      return True
+    return False
 
   def _match_single(self, stat):
     '''
