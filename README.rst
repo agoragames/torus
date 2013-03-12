@@ -33,14 +33,15 @@ The ``karbon`` application runs the `Carbon <http://graphite.wikidot.com>`_-comp
 stat collection application. It is a drop-in replacement for the Carbon backend of
 `statsd <https://github.com/etsy/statsd>`_. It takes the following arguments: ::
 
-    usage: karbon [-h] [--tcp TCP] [--config CONFIG]
+    usage: karbon [-h] [--tcp TCP] [--schema SCHEMA]
 
     Karbon, a Carbon-replacement data collection server
 
     optional arguments:
       -h, --help       show this help message and exit
-      --tcp TCP        TCP binding, in the form of "host:port", ":port", or "port"
-      --config CONFIG  Configuration file for schema and aggregates. Can be called
+      --tcp TCP        TCP binding, in the form of "host:port", ":port", or
+                       "port". Defaults to "localhost:2003".
+      --schema SCHEMA  Configuration file for schema and aggregates. Can be called
                        multiple times for multple configuration files.
 
 
@@ -55,14 +56,15 @@ It is not API compatible with Graphite though it does aim to be familiar to
 Graphite users and provides a graphite-compatible JSON format for ease in integrating
 with existing toolchains. ::
 
-    usage: torus [-h] [--tcp TCP] [--config CONFIG]
+    usage: torus [-h] [--tcp TCP] [--schema SCHEMA]
 
     Torus, a web server for mining data out of kairos
 
     optional arguments:
       -h, --help       show this help message and exit
-      --tcp TCP        TCP binding, in the form of "host:port", ":port", or "port"
-      --config CONFIG  Configuration file for schema and aggregates. Can be called
+      --tcp TCP        TCP binding, in the form of "host:port", ":port", or
+                       "port". Defaults to "localhost:8080".
+      --schema SCHEMA  Configuration file for schema and aggregates. Can be called
                        multiple times for multple configuration files.
 
 
