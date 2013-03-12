@@ -1,5 +1,11 @@
-master
-======
+0.1.2
+=====
+
+Added support for transforms in a schema, to replace or suppress key/value
+pairs.
+
+0.1.1
+=====
 
 Upgrade to kairos 0.1.4 with bug fixes and performance improvements, relative 
 date support and gauge type
