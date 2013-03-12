@@ -1,5 +1,5 @@
 # latest kairos
-kairos==0.1.4
+kairos==0.1.5
 
 # latest redis
 redis>=2.7.2
