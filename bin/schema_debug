@@ -26,20 +26,23 @@ c = Configuration()
 for fname in args.schema:
   c.load( fname )
 
-for s in args.strings:
-  print '===================================================='
-  print s
+def print_matches(s, level=0):
+  indent = '  '*level
+  print '%s%s'%(indent,s)
   for schema in c._schemas:
     if schema.match(s):
-      print '  schema:',schema.name
-  print ''
-  print 'AGGREGATES'
+      print '  %s%s%s'%(indent,'schema:',schema.name)
+      print '  %s%s%s'%(indent,'host:',schema.host)
   aggregates = c._aggregates.match(s)
-  for ag in aggregates:
-    print ag
-    for schema in c._schemas:
-      if schema.match(ag):
-        print '  schema:', schema.name
+  if len(aggregates):
     print ''
+    print '%s%s'%(indent,'AGGREGATES')
+  for ag in aggregates:
+    print_matches(ag, level+1)
+    print ''
+
+for s in args.strings:
+  print '===================================================='
+  print_matches(s)
   print '===================================================='
   print ''

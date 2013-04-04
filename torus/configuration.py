@@ -41,18 +41,26 @@ class Configuration(object):
     '''
     Get the matching schemas for a stat, or an empty list if there aren't any.
     '''
-    #return filter(None, (s.match(stat) for s in self._schemas))
     return [s for s in self._schemas if s.match(stat)]
 
-  def process(self, stat, val, timestamp=None):
+  def process(self, stat, val, timestamp=None, seen=None):
     '''
     Process a stat through this configuration.
     '''
+    if not seen:
+      seen = set([stat])
+    elif stat in seen:
+      return
+
     aggregates = self._aggregates.match(stat)
     for schema in self._schemas:
       schema.store(stat, val, timestamp)
-      for ag in aggregates:
-        schema.store(ag, val, timestamp)
+    
+    # Infinite loop is prevented by match() implementation
+    #seen = set([stat])
+    #seen.update( aggregates )
+    for ag in aggregates:
+      self.process(ag, val, timestamp, seen=seen)
 
   def _load_source(self, fname):
     '''

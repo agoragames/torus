@@ -54,6 +54,10 @@ class Schema(object):
   def name(self):
     return self._name
 
+  @property
+  def host(self):
+    return self._host
+
   def store(self, stat, val, timestamp=None):
     '''
     Store a value in this schema.

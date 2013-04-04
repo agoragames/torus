@@ -7,7 +7,7 @@ https://github.com/agoragames/torus/blob/master/LICENSE.txt
 from chai import Chai
 
 from torus import schema
-from torus.schema import Schema
+from torus.schema import Schema, long_or_float
 
 class SchemaTest(Chai):
 
@@ -23,7 +23,7 @@ class SchemaTest(Chai):
     }
 
     expect( schema.Timeseries ).args( var('client'), type='count',
-      read_func=is_arg(long), write_func=is_arg(long), intervals = {
+      read_func=is_arg(long_or_float), write_func=is_arg(long_or_float), intervals = {
         'minute':{'step':60}
       } )
 

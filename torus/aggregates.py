@@ -32,7 +32,6 @@ class Aggregates(object):
     Return the name of any aggregates which should be generated from the stat
     '''
     return filter(None, (r.match(stat) for r in self._rules))
-  
 
 class Aggregate(object):
   '''

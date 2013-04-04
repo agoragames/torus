@@ -1,3 +1,9 @@
+0.1.4
+=====
+
+Aggregates can now cascade to other aggregates, with a simple failsafe on 
+infinite loops
+
 0.1.3
 =====
 
