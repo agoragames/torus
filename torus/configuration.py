@@ -57,8 +57,6 @@ class Configuration(object):
       schema.store(stat, val, timestamp)
     
     # Infinite loop is prevented by match() implementation
-    #seen = set([stat])
-    #seen.update( aggregates )
     for ag in aggregates:
       self.process(ag, val, timestamp, seen=seen)
 
