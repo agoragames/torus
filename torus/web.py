@@ -80,6 +80,7 @@ class Web(WSGIServer):
           'target' : stat,  # graphite compatible key
           'datapoints' : []
         } )
+        continue
       
       # TODO: what to do with multiple schema matches?
       schema = schemas[-1]
