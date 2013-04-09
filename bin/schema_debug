@@ -31,8 +31,13 @@ def print_matches(s, level=0):
   print '%s%s'%(indent,s)
   for schema in c._schemas:
     if schema.match(s):
-      print '  %s%s%s'%(indent,'schema:',schema.name)
-      print '  %s%s%s'%(indent,'host:',schema.host)
+      print '  %sschema: %s'%(indent,schema.name)
+      print '  %shost: %s'%(indent,schema.host)
+      # This is a bit of a hack and could easily fail for cases that this is
+      # not assuming
+      if schema._transform:
+        k,v = schema._transform(s, 1)
+        print '  %stransform: %s, %s'%(indent,k,v)
   aggregates = c._aggregates.match(s)
   if len(aggregates):
     print ''
