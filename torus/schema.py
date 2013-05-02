@@ -8,6 +8,7 @@ from urlparse import *
 import re
 
 from redis import Redis
+from pymongo import MongoClient
 from kairos import Timeseries
 
 def long_or_float(v):
@@ -115,6 +116,8 @@ class Schema(object):
         db = location.path[1:]
 
       return Redis(host=host, port=int(port), db=int(db))
-      
+
+    elif location.scheme=='mongo':
+      return MongoClient( location.netloc )
 
     raise ValueError("unsupported scheme", location.scheme)      

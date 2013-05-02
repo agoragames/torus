@@ -60,6 +60,12 @@ class Configuration(object):
     for ag in aggregates:
       self.process(ag, val, timestamp, seen=seen)
 
+  def load_schema(self, name, spec):
+    self._schemas.append( Schema(name,spec) )
+
+  def load_aggregate(self, spec):
+    self._aggregates.add( spec )
+
   def _load_source(self, fname):
     '''
     Load the file source.
@@ -73,6 +79,5 @@ class Configuration(object):
       aggregates = getattr(mod,'AGGREGATES',[])
 
       for name,schema in schemas.iteritems():
-        self._schemas.append( Schema(name, schema) )
-
-      self._aggregates.add( aggregates )
+        self.load_schema(name, schema)
+      self.load_aggregates( aggregates )

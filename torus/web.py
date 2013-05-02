@@ -12,6 +12,19 @@ from gevent.pywsgi import WSGIServer
 
 FUNC_MATCH = re.compile('^(?P<func>[a-z]+)\((?P<stat>[^\)]+)\)$')
 
+def extract(dct, transform):
+  '''
+  Recursively extract the transformed data from a given dictionary.
+  '''
+  # If we're at the point where we've found the transformed data, return it
+  if transform in dct:
+    return dct[transform]
+
+  rval = type(dct)()
+  for k,v in dct.iteritems():
+    rval[k] = extract(v, transform)
+  return rval
+
 class Web(WSGIServer):
   '''
   Web server to mine data out of kairos.
@@ -21,10 +34,10 @@ class Web(WSGIServer):
     '''
     Initialize with the given configuration and start the server.
     '''
-    host = kwargs.get('host', '')
-    port = kwargs.get('port', 8080)
+    self.host = kwargs.get('host', '')
+    self.port = kwargs.get('port', 8080)
     self._configuration = kwargs.get('configuration')
-    super(Web,self).__init__( (host,int(port)), self.handle_request, log=None )
+    super(Web,self).__init__( (self.host,int(self.port)), self.handle_request, log=None )
 
   def handle_request(self, env, start_response):
     cmd = env['PATH_INFO'][1:]
@@ -33,8 +46,9 @@ class Web(WSGIServer):
     params = parse_qs( env['QUERY_STRING'] )
    
     try:
-      if cmd=='data':
-        return ujson.dumps( self._data(params, start_response), double_precision=4 )
+      # changing name to 'series', still supporting 'data' for now
+      if cmd in ('data', 'series'):
+        return ujson.dumps( self._series(params, start_response), double_precision=4 )
     except Exception as e:
       import traceback
       traceback.print_exc()
@@ -45,7 +59,7 @@ class Web(WSGIServer):
     start_response( '404 Not Found', [('content-type','application/json')] )
     return []
 
-  def _data(self, params, start_response):
+  def _series(self, params, start_response):
     '''
     Handle the data URL.
     '''
@@ -53,11 +67,13 @@ class Web(WSGIServer):
 
     format = params.setdefault('format',['graphite'])[0]
 
-    # Force condensed data for graphite
+    # Force condensed data for graphite return
     if format=='graphite':
       params['condensed'] = True
     params['condensed'] = bool(params.get('condensed',False))
 
+    # First assemble the unique stats and the functions.
+    stat_queries = {}
     for stat_spec in params['stat']:
       func_match = FUNC_MATCH.match(stat_spec)
       if func_match:
@@ -69,11 +85,20 @@ class Web(WSGIServer):
         else:
           func = None
         stat = stat_spec
-      
-      # find the schema that matches 
-      schemas = self._configuration.schemas(stat)
+      stat_queries.setdefault( stat, {} )
+      if func:
+        stat_queries[stat][func] = func
+      else:
+        stat_queries[stat]['data'] = None
 
+    # For each unique stat, walk trough all the schemas until we find one that
+    # matches the stat and has a matching interval if one is specified. If there
+    # isn't one specified, then pick the first match and the first interval.
+    for stat,transforms in stat_queries.iteritems():
+
+      schemas = self._configuration.schemas(stat)
       if not schemas:
+        # No schema found
         rval.append( {
           'stat' : stat,
           'function' : func,
@@ -81,20 +106,49 @@ class Web(WSGIServer):
           'datapoints' : []
         } )
         continue
-      
-      # TODO: what to do with multiple schema matches?
-      schema = schemas[-1]
-      intervals = schema.config['intervals'].keys()
-      data = schema.timeseries.series(stat, intervals[-1], 
-        condensed=params['condensed'], transform=func)
-      rval.append( {
-        'stat' : stat,
-        'function' : func,
-        'target' : stat,  # graphite compatible key
-        'schema' : schema.name,
-        'interval' : intervals[-1],
-        'datapoints' : data,
-      } )
+
+      interval = params.get('interval')
+
+      for schema in schemas:
+        if interval in schema.config['intervals'].keys():
+          break
+      else:
+        # No interval found, pick the first interval of the chosen schema
+        # TODO: pick the finest or largest interval?
+        interval = schema.config['intervals'].keys()[0]
+
+
+      # Handle if no actual transforms were defined
+      if transforms=={'data':None}:
+        transforms = None
+
+      data = schema.timeseries.series(stat, interval,
+        condensed=params['condensed'], transform=transforms)
+
+      # If there were any transforms, then that means there's a list to append
+      # for each matching stat, else there's just a single value.
+      if transforms:
+        for transform in transforms.iterkeys():
+          # This transposition of the way in which kairos returns the
+          # transforms and how torus presents it is most unfortunate.
+          # In both cases I prefer the format for its given role.
+          # TODO: Extract the data
+          rval.append( {
+            'stat' : stat,
+            'function' : transform,
+            'target' : stat,  # graphite compatible key
+            'schema' : schema.name,
+            'interval' : interval,
+            'datapoints' : extract(data, transform),
+          } )
+      else:
+        rval.append( {
+          'stat' : stat,
+          'target' : stat,  # graphite compatible key
+          'schema' : schema.name,
+          'interval' : interval,
+          'datapoints' : data,
+        } )
 
     start_response('200 OK', [('content-type','application/json')] )
     return rval
