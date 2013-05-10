@@ -1,8 +1,11 @@
 # latest kairos
-kairos==0.1.5
+kairos>=0.2.2
 
 # latest redis
 redis>=2.7.2
+
+# latest pymongo
+pymongo>=2.5.0
 
 # gevent
 # NOTE: recommend the 1.0 release candidates
