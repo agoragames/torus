@@ -23,7 +23,7 @@ class SchemaTest(Chai):
     }
 
     expect( schema.Timeseries ).args( var('client'), type='count',
-      read_func=is_arg(long_or_float), write_func=is_arg(long_or_float), intervals = {
+      read_func=long_or_float, write_func=long_or_float, intervals = {
         'minute':{'step':60}
       } )
 
