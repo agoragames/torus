@@ -2,7 +2,7 @@
 Torus
 =====
 
-:Version: 0.1.4
+:Version: 0.2.0
 :Download: http://pypi.python.org/pypi/torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
@@ -146,11 +146,23 @@ in a file reference on the command line, and includes the following: ::
         # One of (series, histogram, count, gauge). Optional, defaults to "count".
         type: 'histogram'
 
-        # The host on which the timeseries is stored. If no scheme defined,
-        # defaults to redis. If this is not a string, assumed to be a 
+        # The database type, host and database identifier in which the 
+        # timeseries is stored. If this is not a string, assumed to be a 
         # connection instance and will be used natively (e.g. for Redis
-        # unix domain sockets).
-        host: 'localhost:6379/0'
+        # unix domain sockets). The full redis and mongodb URI schemes are
+        # supported.
+        #
+        # NOTE: As of redis-py 2.7.4, the URI requires the port number
+        #   https://github.com/andymccurdy/redis-py/pull/345
+        #
+        # http://docs.mongodb.org/manual/reference/connection-string/
+        #
+        # host: 'redis://localhost'
+        # host: 'redis://localhost/3'
+        # host: 'mongodb://localhost'
+        # host: 'mongodb://localhost:27018/timeseries'
+        # host: 'mongodb://guest:host@localhost/authed_db'
+        host: 'redis://localhost:6379/0'
 
         # Patterns for any matching stats to store in this schema. If this is
         # a string, matches just one pattern, else if it's a list of strings,

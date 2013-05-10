@@ -14,7 +14,7 @@ from torus.configuration import Configuration
 SCHEMAS = {
   'redis-minutely' : {
     'type'  : 'histogram',
-    'host'  : 'redis://localhost',
+    'host'  : 'redis://localhost:6379',  # See README about redis-py bug
     'match' : '.*',
     'intervals' : {
       'second' : {
@@ -30,7 +30,7 @@ SCHEMAS = {
 
   'mongo-hourly': {
     'type'  : 'histogram',
-    'host'  : 'mongo://localhost',
+    'host'  : 'mongodb://localhost',
     'match' : '.*',
     'intervals' : {
       'minute' : {

@@ -96,28 +96,22 @@ class Schema(object):
     if not isinstance(self._host, (str,unicode)):
       return self._host
 
-
-    # To force scheme and netloc behavior. Easily a bug here but let it 
-    # go for now
-    if '//' not in self._host:
-      self._host = '//'+self._host
     location = urlparse(self._host)
 
-    if location.scheme in ('','redis'):
-      if ':' in location.netloc:
-        host,port = location.netloc.split(':')
-      else:
-        host,port = location.netloc,6379
+    if location.scheme == 'redis':
+      return Redis.from_url( self._host  )
 
-      # TODO: better matching here
-      if location.path in ('', '/'):
-        db = 0
-      else:
-        db = location.path[1:]
+    elif location.scheme == 'mongodb':
+      # Use the whole host string so that mongo driver can do its thing
+      client = MongoClient( self._host )
+      
+      # Stupid urlparse has a "does this scheme use queries" registrar,
+      # so copy that work here. Then pull out the optional database name.
+      path = location.path
+      if '?' in path:
+        path = path.split('?',1)[0]
+      path = re.search('[/]*([\w]*)', path).groups()[0] or 'torus'
 
-      return Redis(host=host, port=int(port), db=int(db))
+      return client[ path ]
 
-    elif location.scheme=='mongo':
-      return MongoClient( location.netloc )
-
-    raise ValueError("unsupported scheme", location.scheme)      
+    raise ValueError("unsupported scheme", location.scheme)

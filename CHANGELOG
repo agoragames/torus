@@ -1,3 +1,14 @@
+0.2.0
+=====
+
+Added support for Mongo backends via latest kairos
+
+Require the database type in the URI
+
+Redis and Mongo support full suite of URI options
+
+Added "schema_debug" binary to package
+
 0.1.4
 =====
 

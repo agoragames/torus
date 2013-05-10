@@ -6,8 +6,8 @@ except ImportError:
     from distutils.core import setup
 
 requirements = [req.strip() for req in open('requirements.pip')]
-if sys.version_info[:2] <= (2, 6):
-    requirements = [req.strip() for req in open('requirements_py26.pip')]
+#if sys.version_info[:2] <= (2, 6):
+    #requirements = [req.strip() for req in open('requirements_py26.pip')]
 
 exec([v for v in open('torus/__init__.py') if '__version__' in v][0])
 
@@ -23,7 +23,7 @@ setup(
     description='Carbon and Graphite replacement using Kairos for timeseries storage',
     long_description=open('README.rst').read(),
     keywords=['python', 'redis', 'time series', 'statistics'],
-    scripts=['bin/karbon', 'bin/torus'],
+    scripts=['bin/karbon', 'bin/torus', 'bin/schema_debug'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: BSD License',

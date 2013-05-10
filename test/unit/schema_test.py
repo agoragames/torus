@@ -13,7 +13,7 @@ class SchemaTest(Chai):
 
   def test_init_simple_options(self):
     config = {
-      'host' : '',
+      'host' : 'redis://localhost',
       'match' : 'astat',
       'intervals' : {
         'minute' : {
