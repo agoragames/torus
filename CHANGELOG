@@ -1,3 +1,8 @@
+0.2.1
+=====
+
+Fix bug in detecting recursion when processing aggregates
+
 0.2.0
 =====
 
