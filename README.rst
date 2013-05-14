@@ -68,8 +68,12 @@ with existing toolchains. ::
                        multiple times for multple configuration files.
 
 
-It should share the same schema as ``karbon``, and also reloads the schema(s)
-it receives a ``SIGHUP``.  
+For most use cases it can share a schema with ``karbon``. However, one could use
+``Chef``, ``puppet`` or a similar tool to templatize the schema, and replace 
+strings such as the ``host`` definition, so as to target a specific set of
+resources at reading the data.
+
+To reload the schema(s), send a ``SIGHUP`` to the ``torus`` process.
 
 ``torus`` will respond to ``http://$tcp/$command?$parameters`` for the 
 following commands, where ``$parameters`` is a standard URL encoded 
@@ -230,6 +234,27 @@ in a file reference on the command line, and includes the following: ::
       ('application.rollup', 'application.count.*'),
       ('application.result.<code>', 'application.http.status.<code>'),
     ]
+
+Debugging
+---------
+
+Debugging a schema or set of schemas can pose a challenge. Torus ships with `schema_debug`,
+a tool for testing any number of input strings against any number of schemas. It will 
+output which rules match the input string, which database that match will be stored in, any
+aggregates that will be generated from the input rule, and then recursively any schemas and
+aggregates that match each aggregate. ::
+
+    usage: schema_debug [-h] [--schema SCHEMA] strings [strings ...]
+
+    Debugging tool for schemas
+
+    positional arguments:
+      strings          One or more input strings to test against the scheams
+
+    optional arguments:
+      -h, --help       show this help message and exit
+      --schema SCHEMA  Configuration file for schema and aggregates. Can be called
+                       multiple times for multiple configuration files.
 
 
 Series Types
