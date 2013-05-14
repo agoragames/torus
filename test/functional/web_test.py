@@ -98,7 +98,7 @@ class WebTest(Chai):
     assert_equals( dog, counts['foo.bor.cat'] )
     assert_equals( dog, counts['foo.bor'] )
     assert_equals( 2*dog, counts['foo.bar'] )
-    assert_equals( 6*dog, counts['foo'] )
+    assert_equals( 3*dog, counts['foo'] )
 
     request = {
       'stat' : ['foo'],
