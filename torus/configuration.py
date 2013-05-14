@@ -48,9 +48,10 @@ class Configuration(object):
     Process a stat through this configuration.
     '''
     if not seen:
-      seen = set([stat])
+      seen = set()
     elif stat in seen:
       return
+    seen.add(stat)
 
     aggregates = self._aggregates.match(stat)
     for schema in self._schemas:
@@ -80,4 +81,4 @@ class Configuration(object):
 
       for name,schema in schemas.iteritems():
         self.load_schema(name, schema)
-      self.load_aggregates( aggregates )
+      self.load_aggregate( aggregates )

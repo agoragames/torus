@@ -26,7 +26,13 @@ c = Configuration()
 for fname in args.schema:
   c.load( fname )
 
-def print_matches(s, level=0):
+def print_matches(s, level=0, seen=None):
+  if not seen:
+    seen = set()
+  elif s in seen:
+    return
+  seen.add( s )
+
   indent = '  '*level
   print '%s%s'%(indent,s)
   for schema in c._schemas:
@@ -43,7 +49,7 @@ def print_matches(s, level=0):
     print ''
     print '%s%s'%(indent,'AGGREGATES')
   for ag in aggregates:
-    print_matches(ag, level+1)
+    print_matches(ag, level+1, seen)
     print ''
 
 for s in args.strings:
