@@ -9,8 +9,10 @@ import re
 import ujson
 from urlparse import *
 from gevent.pywsgi import WSGIServer
+import parsedatetime as pdt
 
 FUNC_MATCH = re.compile('^(?P<func>[a-z]+)\((?P<stat>[^\)]+)\)$')
+cal = pdt.Calendar()
 
 def extract(dct, transform):
   '''
@@ -72,6 +74,30 @@ class Web(WSGIServer):
       params['condensed'] = True
     params['condensed'] = bool(params.get('condensed',False))
 
+    # If start or end times are defined, process them
+    start = params.get('start', [''])[0]
+    end = params.get('end', [''])[0]
+    if start:
+      try:
+        start = float(start)
+      except ValueError:
+        match = cal.parse(start)
+        if match and match[1]:
+          start = time.mktime( match[0] )
+        else:
+          start = None
+    if end:
+      try:
+        end = float(end)
+      except ValueError:
+        match = cal.parse(end)
+        if match and match[1]:
+          end = time.mktime( match[0] )
+        else:
+          end = None
+
+    steps = int(params.get('steps',[0])[0])
+
     # First assemble the unique stats and the functions.
     stat_queries = {}
     for stat_spec in params['stat']:
@@ -123,7 +149,8 @@ class Web(WSGIServer):
         transforms = None
 
       data = schema.timeseries.series(stat, interval,
-        condensed=params['condensed'], transform=transforms)
+        condensed=params['condensed'], transform=transforms,
+        start=start, end=end, steps=steps)
 
       # If there were any transforms, then that means there's a list to append
       # for each matching stat, else there's just a single value.
