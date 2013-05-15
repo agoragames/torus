@@ -78,17 +78,23 @@ class Web(WSGIServer):
     start = params.get('start', [''])[0]
     end = params.get('end', [''])[0]
     if start:
-      match = cal.parse(start)
-      if match and match[1]:
-        start = time.mktime( match[0] )
-      else:
-        start = None
+      try:
+        start = float(start)
+      except ValueError:
+        match = cal.parse(start)
+        if match and match[1]:
+          start = time.mktime( match[0] )
+        else:
+          start = None
     if end:
-      match = cal.parse(end)
-      if match and match[1]:
-        end = time.mktime( match[0] )
-      else:
-        end = None
+      try:
+        end = float(end)
+      except ValueError:
+        match = cal.parse(end)
+        if match and match[1]:
+          end = time.mktime( match[0] )
+        else:
+          end = None
 
     steps = int(params.get('steps',[0])[0])
 
@@ -143,7 +149,8 @@ class Web(WSGIServer):
         transforms = None
 
       data = schema.timeseries.series(stat, interval,
-        condensed=params['condensed'], transform=transforms)
+        condensed=params['condensed'], transform=transforms,
+        start=start, end=end, steps=steps)
 
       # If there were any transforms, then that means there's a list to append
       # for each matching stat, else there's just a single value.
