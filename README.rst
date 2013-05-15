@@ -2,7 +2,7 @@
 Torus
 =====
 
-:Version: 0.2.1
+:Version: 0.3.0
 :Download: http://pypi.python.org/pypi/torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
