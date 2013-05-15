@@ -2,7 +2,7 @@
 Torus
 =====
 
-:Version: 0.2.1
+:Version: 0.3.0
 :Download: http://pypi.python.org/pypi/torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
@@ -154,10 +154,7 @@ in a file reference on the command line, and includes the following: ::
         # timeseries is stored. If this is not a string, assumed to be a 
         # connection instance and will be used natively (e.g. for Redis
         # unix domain sockets). The full redis and mongodb URI schemes are
-        # supported.
-        #
-        # NOTE: As of redis-py 2.7.4, the URI requires the port number
-        #   https://github.com/andymccurdy/redis-py/pull/345
+        # supported (requires redis 2.7.5).
         #
         # http://docs.mongodb.org/manual/reference/connection-string/
         #
