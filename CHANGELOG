@@ -1,7 +1,7 @@
 0.3.0
 =====
 
-Upgrade to kairos 0.3.0, adds support for gregorian dates and date ranges
+Upgrade to kairos 0.3.0, adds support for Gregorian dates and date ranges
 to "/series"
 
 Adds support for UNIX timestamps or parsedatetime-compatible strings for

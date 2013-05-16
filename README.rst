@@ -82,8 +82,10 @@ parameter list.
 Commands
 --------
 
-/data
-#####
+/series
+#######
+
+DEPRECATED: formerly ``/data``
 
 
 Parameters
@@ -301,11 +303,8 @@ Use `nose <https://github.com/nose-devs/nose/>`_ to run the test suite. ::
 Future
 ======
 
-* Expanded schema matching in torus' ``/data`` command
-* Date range and other parameters in torus' ``/data`` command
 * Investigate faster regular expression engines. `pyre2 <https://github.com/facebook/pyre2>`_ is currently in the running.
-* Support for mongo when supported in kairos
-* UNIX domain sockets for redis (without an instance in the schema)
 * Expand supported stat naming (unicode, symbols, etc)
 * A ``relay`` host type for forwarding karbon data to another Carbon-compatible host
 * Schema migration tools
+* log and stdout for ``torus`` and ``karbon``
