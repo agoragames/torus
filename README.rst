@@ -204,7 +204,9 @@ in a file reference on the command line, and includes the following: ::
           # and not include ":" or "."
           minute: {
 
-            # Required. The number of seconds that the interval will cover
+            # Required. The number of seconds that the interval will cover,
+            # or one of the Gregorian intervals "daily", "weekly", "monthly"
+            # or "yearly"
             step: 60,
 
             # Optional. The maximum number of intervals to maintain. If supplied,
@@ -216,7 +218,7 @@ in a file reference on the command line, and includes the following: ::
             # seconds in which data is assumed to have occurred "at the same time".
             # So if you're tracking a month long time series, you may only need
             # resolution down to the day, or resolution=86400. Defaults to same
-            # value as "step".
+            # value as "step". Can also be one of the supported Gregorian intevals.
             resolution: 60,
             }
           }
