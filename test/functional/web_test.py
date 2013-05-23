@@ -106,3 +106,17 @@ class WebTest(Chai):
     }
     result = web._series(request, start_response)
     assert_equals( 'redis-minutely', result[0]['schema'] )
+    
+    # Simply test that this works, come back to asserting the results
+    # another time
+    request = {
+      'stat' : ['foo'],
+      'start' : ['yesterday']
+    }
+    result = web._series(request, start_response)
+    
+    request = {
+      'stat' : ['foo'],
+      'start' : ['8675309']
+    }
+    result = web._series(request, start_response)
