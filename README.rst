@@ -117,6 +117,32 @@ Fetches data for one or more statistics and returns a list of objects for each s
     schema, determines whether resolutions are flattened or returned as-is. 
     Forced to ``true`` for ``graphite`` format.
 
+* interval
+
+    The interval to choose, one of the intervals available in whatever schema
+    matches ``stat``.  Must apply to all ``stat`` arguments.
+
+* start
+
+    An optional timestamp for the beginning of the return interval. Can be in
+    the form of a unix timestamp, a ``strftime``-formatted string, or a 
+    human-readable relative value such as "today", "5 days ago", "last week",
+    etc.
+
+* end
+
+    An optional timestamp for the end of the return interval. Can accept the
+    same values as ``start``. With no arguments, this is implicitely the time
+    at which the query is made.
+
+* steps
+
+    Given either a ``start`` or ``end`` timestamp, this parameter defines the
+    number of intervals (inclusive) after or before (respectively) to return. 
+    So if ``start`` is "last week" and ``steps=7``, the result data will end 
+    with yesterday's data. If no timestamps are given, this is the number of
+    intervals before the current time (inclusive).
+
 
 Returns
 *******
