@@ -68,11 +68,13 @@ class Web(WSGIServer):
     rval = []
 
     format = params.setdefault('format',['graphite'])[0]
+    condensed = False
 
     # Force condensed data for graphite return
     if format=='graphite':
-      params['condensed'] = True
-    params['condensed'] = bool(params.get('condensed',False))
+      condensed = True
+    else:
+      condensed = bool(params.get('condensed',[False])[0])
 
     # If start or end times are defined, process them
     start = params.get('start', [''])[0]
@@ -133,7 +135,7 @@ class Web(WSGIServer):
         } )
         continue
 
-      interval = params.get('interval')
+      interval = params.get('interval',[None])[0]
 
       for schema in schemas:
         if interval in schema.config['intervals'].keys():
@@ -149,7 +151,7 @@ class Web(WSGIServer):
         transforms = None
 
       data = schema.timeseries.series(stat, interval,
-        condensed=params['condensed'], transform=transforms,
+        condensed=condensed, transform=transforms,
         start=start, end=end, steps=steps)
 
       # If there were any transforms, then that means there's a list to append

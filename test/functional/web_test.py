@@ -102,7 +102,7 @@ class WebTest(Chai):
 
     request = {
       'stat' : ['foo'],
-      'interval' : 'second'
+      'interval' : ['second']
     }
     result = web._series(request, start_response)
     assert_equals( 'redis-minutely', result[0]['schema'] )
