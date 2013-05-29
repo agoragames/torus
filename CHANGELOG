@@ -1,3 +1,9 @@
+0.3.3
+=====
+
+Result of "/series" now includes the full stat name and its function in the
+'stat' field. Added 'stat_name' field in results.
+
 0.3.2
 =====
 

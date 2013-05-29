@@ -86,19 +86,23 @@ class WebTest(Chai):
 
     request = {
       'stat' : ['count(foo)', 'count(foo.bar)', 'count(foo.bor)',
-        'count(foo.bar.dog)', 'count(foo.bor.cat)'],
+        'count(foo.bar.dog)', 'count(foo.bor.cat)', 'min(foo)', 'max(foo)'],
     }
     result = web._series(request, start_response)
 
     counts = {}
     for row in result:
-      counts[ row['stat'] ] = row['datapoints'].values()[0]
+      counts[ row['stat'] ] = row['datapoints'].values()[-1]
 
-    dog = counts['foo.bar.dog']
-    assert_equals( dog, counts['foo.bor.cat'] )
-    assert_equals( dog, counts['foo.bor'] )
-    assert_equals( 2*dog, counts['foo.bar'] )
-    assert_equals( 3*dog, counts['foo'] )
+    dog = counts['count(foo.bar.dog)']
+    assert_not_equals( 0, dog )
+    assert_equals( dog, counts['count(foo.bor.cat)'] )
+    assert_equals( dog, counts['count(foo.bor)'] )
+    assert_equals( 2*dog, counts['count(foo.bar)'] )
+    assert_equals( 3*dog, counts['count(foo)'] )
+    assert_not_equals( counts['count(foo)'], counts['max(foo)'] )
+    assert_not_equals( counts['max(foo)'], counts['min(foo)'] )
+
 
     request = {
       'stat' : ['foo'],

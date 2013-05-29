@@ -2,7 +2,7 @@
 Torus
 =====
 
-:Version: 0.3.2
+:Version: 0.3.3
 :Download: http://pypi.python.org/pypi/torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
@@ -153,19 +153,26 @@ A json structure. ::
       'function': 'avg',
       'interval': 'hour',
       'schema': 'calls',
-      'stat': 'calls.system',
-      'target': 'calls.system'
+      'stat': 'avg(calls.system)',
+      'stat_name' : 'calls.system',
+      'target': 'calls.system',
       'datapoints': [[0.0391, 1362153600], [0, 1362157200]],
 
      }, 
      ...
     ]
 
+The ``stat`` field will be the full name of the corresponding parameter, 
+including the function (if any).  The ``stat_name`` field will be just the
+name of the statistic that was matched to the schema, and ``target`` will
+be a copy of the same for clients which are expecting data in ``graphite``
+format.
+
 
 Schema
 ======
 
-The schema for `torus` is an extension of the `kairos` schema.  It is defined
+The schema for ``torus`` is an extension of the ``kairos`` schema.  It is defined
 in a file reference on the command line, and includes the following: ::
 
     SCHEMAS = {
@@ -265,7 +272,7 @@ in a file reference on the command line, and includes the following: ::
 Debugging
 ---------
 
-Debugging a schema or set of schemas can pose a challenge. Torus ships with `schema_debug`,
+Debugging a schema or set of schemas can pose a challenge. Torus ships with ``schema_debug``,
 a tool for testing any number of input strings against any number of schemas. It will 
 output which rules match the input string, which database that match will be stored in, any
 aggregates that will be generated from the input rule, and then recursively any schemas and

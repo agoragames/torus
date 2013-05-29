@@ -116,24 +116,28 @@ class Web(WSGIServer):
         stat = stat_spec
       stat_queries.setdefault( stat, {} )
       if func:
-        stat_queries[stat][func] = func
+        stat_queries[stat][stat_spec] = func
       else:
-        stat_queries[stat]['data'] = None
+        # essentially a "null" transform, we'll get our data back
+        stat_queries[stat][stat_spec] = None
 
     # For each unique stat, walk trough all the schemas until we find one that
     # matches the stat and has a matching interval if one is specified. If there
     # isn't one specified, then pick the first match and the first interval.
-    for stat,transforms in stat_queries.iteritems():
+    for stat,specs in stat_queries.iteritems():
 
       schemas = self._configuration.schemas(stat)
       if not schemas:
-        # No schema found
-        rval.append( {
-          'stat' : stat,
-          'function' : func,
-          'target' : stat,  # graphite compatible key
-          'datapoints' : []
-        } )
+        # No schema found, return an empty data set for each query
+        # on that stat
+        for spec in specs.keys():
+          rval.append( {
+            'stat' : spec,
+            'stat_name' : stat,
+            'function' : func,
+            'target' : stat,  # graphite compatible key
+            'datapoints' : []
+          } )
         continue
 
       interval = params.get('interval',[None])[0]
@@ -148,7 +152,8 @@ class Web(WSGIServer):
 
 
       # Handle if no actual transforms were defined
-      if transforms=={'data':None}:
+      transforms = specs.values()
+      if transforms==[None]:
         transforms = None
 
       data = schema.timeseries.series(stat, interval,
@@ -158,13 +163,14 @@ class Web(WSGIServer):
       # If there were any transforms, then that means there's a list to append
       # for each matching stat, else there's just a single value.
       if transforms:
-        for transform in transforms.iterkeys():
+        for spec,transform in specs.iteritems(): 
           # This transposition of the way in which kairos returns the
           # transforms and how torus presents it is most unfortunate.
           # In both cases I prefer the format for its given role.
           # TODO: Extract the data
           rval.append( {
-            'stat' : stat,
+            'stat' : spec,
+            'stat_name' : stat,
             'function' : transform,
             'target' : stat,  # graphite compatible key
             'schema' : schema.name,
@@ -174,6 +180,7 @@ class Web(WSGIServer):
       else:
         rval.append( {
           'stat' : stat,
+          'stat_name' : stat,
           'target' : stat,  # graphite compatible key
           'schema' : schema.name,
           'interval' : interval,
