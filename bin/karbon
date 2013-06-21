@@ -9,6 +9,9 @@ import sys, os, argparse, re, signal
 import gevent, gevent.monkey
 gevent.monkey.patch_all()
 
+from setproctitle import setproctitle
+setproctitle('karbon')
+
 from torus.configuration import Configuration
 from torus.karbon_tcp import KarbonTcp
 
