@@ -77,6 +77,9 @@ class Schema(object):
     Used for when schema implements a single regular expression, returns
     True if the stat matches this schema, False otherwise.
     '''
+    if isinstance(stat,(list,tuple)):
+      matches = filter(None, [self._patterns.search(s) for s in stat] )
+      return len(matches)==len(stat)
     return self._patterns.search(stat) is not None
 
   def _match_list(self, stat):

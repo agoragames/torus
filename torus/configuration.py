@@ -19,6 +19,7 @@ class Configuration(object):
     self._files = []
     self._schemas = []
     self._aggregates = Aggregates()
+    self._transforms = {}
 
   def load(self, fname):
     '''
@@ -33,9 +34,16 @@ class Configuration(object):
     '''
     self._schemas = []
     self._aggregates = Aggregates()
+    self._transforms = {}
     
     for fname in self._files:
       self._load_source( fname )
+
+  def transform(self, name):
+    '''
+    Get a named transform from the configurations, or None if not found.
+    '''
+    return self._transforms.get(name)
 
   def schemas(self, stat):
     '''
@@ -78,7 +86,11 @@ class Configuration(object):
 
       schemas = getattr(mod,'SCHEMAS',{})
       aggregates = getattr(mod,'AGGREGATES',[])
+      transforms = getattr(mod,'TRANSFORMS',{})
 
-      for name,schema in schemas.iteritems():
+      for name,schema in schemas.items():
         self.load_schema(name, schema)
       self.load_aggregate( aggregates )
+
+      for name,func in transforms.items():
+        self._transforms[name] = func
