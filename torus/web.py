@@ -77,6 +77,8 @@ class Web(WSGIServer):
     else:
       condensed = bool(params.get('condensed',[False])[0])
 
+    collapse = bool(params.get('collapse',[False])[0])
+
     # If start or end times are defined, process them
     start = params.get('start', [''])[0]
     end = params.get('end', [''])[0]
@@ -114,8 +116,12 @@ class Web(WSGIServer):
         else:
           func = None
         stat = stat_spec
+
+      stat = tuple(stat.split(','))
       stat_queries.setdefault( stat, {} )
       if func:
+        # See if the function is defined by configuration
+        func = self._configuration.transform(func) or func 
         stat_queries[stat][stat_spec] = func
       else:
         # essentially a "null" transform, we'll get our data back
@@ -158,7 +164,7 @@ class Web(WSGIServer):
 
       data = schema.timeseries.series(stat, interval,
         condensed=condensed, transform=transforms,
-        start=start, end=end, steps=steps)
+        start=start, end=end, steps=steps, collapse=collapse)
 
       # If there were any transforms, then that means there's a list to append
       # for each matching stat, else there's just a single value.
@@ -171,7 +177,7 @@ class Web(WSGIServer):
           rval.append( {
             'stat' : spec,
             'stat_name' : stat,
-            'function' : transform,
+            'function' : transform.__name__ if callable(transform) else transform,
             'target' : stat,  # graphite compatible key
             'schema' : schema.name,
             'interval' : interval,
