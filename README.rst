@@ -290,6 +290,18 @@ aggregates that match each aggregate. ::
       --schema SCHEMA  Configuration file for schema and aggregates. Can be called
                        multiple times for multiple configuration files.
 
+Torus also supports the ``DEBUG`` flag which can be defined in any of the
+configuration files and which will cause ``karbon`` to print to stdout. If 
+it is ``0``, or not defined, no output will be generated. If it is ``1``,
+``karbon`` will log when it stores a raw value (``STOR``) or aggregate
+(``AGRT``), and statistics on the quantity and duration of processing
+(``DONE``). If ``DEBUG==2``, ``karbon`` will also log every line it 
+recieves (``RECV``) and lines that it skips (``SKIP``).
+
+To use the debugging flag, you can change the value in one of the configuration
+files loaded by ``karbon``, and then signal the process to reload with the 
+command ``kill -SIGHUP `pidof karbon```.
+
 
 Series Types
 ------------
