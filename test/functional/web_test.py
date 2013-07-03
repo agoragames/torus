@@ -52,15 +52,11 @@ AGGREGATES = (
   ('foo.<bar>', 'foo.<bar>.*')
 )
 
-def unique(dct):
-  '''Return the number of unique keys in the dictionary.'''
-  return len(dct)
-
 config = Configuration()
 for name,spec in SCHEMAS.iteritems():
   config.load_schema( name, spec )
 config.load_aggregate( AGGREGATES )
-config._transforms['unique'] = unique
+config._transforms['unique'] = lambda dct: len(dct)
 
 # insert some test data, 2 hours in 30 second intervals
 for schema in config._schemas:

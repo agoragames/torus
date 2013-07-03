@@ -108,24 +108,24 @@ class Web(WSGIServer):
     for stat_spec in params['stat']:
       func_match = FUNC_MATCH.match(stat_spec)
       if func_match:
-        func = func_match.groupdict()['func']
+        func_name = func_match.groupdict()['func']
         stat = func_match.groupdict()['stat']
       else:
         if format=='graphite':
-          func = 'mean'
+          func_name = 'mean'
         else:
-          func = None
+          func_name = None
         stat = stat_spec
 
       stat = tuple(stat.split(','))
       stat_queries.setdefault( stat, {} )
-      if func:
+      if func_name:
         # See if the function is defined by configuration
-        func = self._configuration.transform(func) or func 
-        stat_queries[stat][stat_spec] = func
+        func = self._configuration.transform(func_name) or func_name
+        stat_queries[stat][stat_spec] = (func_name, func)
       else:
         # essentially a "null" transform, we'll get our data back
-        stat_queries[stat][stat_spec] = None
+        stat_queries[stat][stat_spec] = (None, None)
 
     # For each unique stat, walk trough all the schemas until we find one that
     # matches the stat and has a matching interval if one is specified. If there
@@ -136,11 +136,11 @@ class Web(WSGIServer):
       if not schemas:
         # No schema found, return an empty data set for each query
         # on that stat
-        for spec in specs.keys():
+        for spec,transform in specs.items():
           rval.append( {
             'stat' : spec,
             'stat_name' : stat,
-            'function' : func,
+            'function' : transform[0],
             'target' : stat,  # graphite compatible key
             'datapoints' : []
           } )
@@ -157,10 +157,12 @@ class Web(WSGIServer):
         interval = schema.config['intervals'].keys()[0]
 
 
-      # Handle if no actual transforms were defined
+      # Filter out the unique transforms 
       transforms = specs.values()
-      if transforms==[None]:
+      if transforms==[(None,None)]:
         transforms = None
+      else:
+        transforms = [ t[1] for t in transforms ]
 
       data = schema.timeseries.series(stat, interval,
         condensed=condensed, transform=transforms,
@@ -177,11 +179,11 @@ class Web(WSGIServer):
           rval.append( {
             'stat' : spec,
             'stat_name' : stat,
-            'function' : transform.__name__ if callable(transform) else transform,
+            'function' : transform[0],
             'target' : stat,  # graphite compatible key
             'schema' : schema.name,
             'interval' : interval,
-            'datapoints' : extract(data, transform),
+            'datapoints' : extract(data, transform[1]),
           } )
       else:
         rval.append( {
