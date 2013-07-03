@@ -1,3 +1,12 @@
+debugging-tools
+===============
+
+Rename torus and karbon processes for easy "kill -SIGHUP `pidof karbon`".
+
+Configuration files can include "DEBUG" stanza for turning on debug logging.
+Debugging output currently only implemented in karbon. See the "Debugging"
+section in the README for details.
+
 kairos-0.4.0
 ============
 

@@ -71,15 +71,15 @@ class Configuration(object):
       stored = schema.store(stat, val, timestamp)
       if self._debug:
         if stored:
-          print 'STORED ', stat, val, timestamp
+          print 'STOR', stat, val, timestamp
         elif self._debug > 1:
-          print 'SKIPPED ', stat, val, timestamp
+          print 'SKIP', stat, val, timestamp
     
     # Infinite loop is prevented by match() implementation
     for ag in aggregates:
       processed = self.process(ag, val, timestamp, seen=seen)
       if self._debug and processed:
-        print 'PROCESSED AGGREGATE ', ag, 'FROM', stat, val, timestamp
+        print 'AGRT', ag, 'FROM', stat, val, timestamp
 
     return True
 
