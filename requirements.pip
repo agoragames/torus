@@ -19,3 +19,6 @@ ujson
 
 # date time parsing
 parsedatetime
+
+# set process names
+setproctitle

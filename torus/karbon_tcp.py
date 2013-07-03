@@ -56,9 +56,14 @@ class KarbonTcp(StreamServer):
     Process all the datapoints that we read.
     '''
     try:
+      import time
+      num = len(lines.split('\n'))
+      t0 = time.time()
       for line in lines.split('\n'):
         if not len(line.strip()): continue
 
+        if self._configuration.debug>1:
+          print 'RECV', line
         try:
           stat,val,timestamp = line.split()
         except ValueError:
@@ -67,6 +72,9 @@ class KarbonTcp(StreamServer):
         timestamp = long(timestamp)
 
         self._configuration.process(stat,val,timestamp)
+      t1 = time.time()
+      if self._configuration.debug:
+        print 'DONE', num, t1-t0, float(num)/float(t1-t0)
     except Exception as e:
       import traceback
       traceback.print_exc()
