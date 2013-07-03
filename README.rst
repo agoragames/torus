@@ -2,7 +2,7 @@
 Torus
 =====
 
-:Version: 0.3.3
+:Version: 0.4.0
 :Download: http://pypi.python.org/pypi/torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
@@ -33,7 +33,7 @@ The ``karbon`` application runs the `Carbon <http://graphite.wikidot.com>`_-comp
 stat collection application. It is a drop-in replacement for the Carbon backend of
 `statsd <https://github.com/etsy/statsd>`_. It takes the following arguments: ::
 
-    usage: karbon [-h] [--tcp TCP] [--schema SCHEMA]
+    usage: karbon [-h] [--tcp TCP] [--config CONFIG]
 
     Karbon, a Carbon-replacement data collection server
 
@@ -41,12 +41,12 @@ stat collection application. It is a drop-in replacement for the Carbon backend 
       -h, --help       show this help message and exit
       --tcp TCP        TCP binding, in the form of "host:port", ":port", or
                        "port". Defaults to "localhost:2003".
-      --schema SCHEMA  Configuration file for schema and aggregates. Can be called
-                       multiple times for multple configuration files.
+      --config CONFIG  Configuration file to load. Can be called multiple times
+                       for multiple configuration files.
 
 
-The schema is documented below. To reload the schema(s), send a ``SIGHUP`` to
-the ``karbon`` process.
+The configuration is documented below. To reload the configuration(s), send a 
+``SIGHUP`` to the ``karbon`` process.
 
 Query Server
 ============
@@ -56,7 +56,7 @@ It is not API compatible with Graphite though it does aim to be familiar to
 Graphite users and provides a graphite-compatible JSON format for ease in integrating
 with existing toolchains. ::
 
-    usage: torus [-h] [--tcp TCP] [--schema SCHEMA]
+    usage: torus [-h] [--tcp TCP] [--config CONFIG]
 
     Torus, a web server for mining data out of kairos
 
@@ -64,16 +64,16 @@ with existing toolchains. ::
       -h, --help       show this help message and exit
       --tcp TCP        TCP binding, in the form of "host:port", ":port", or
                        "port". Defaults to "localhost:8080".
-      --schema SCHEMA  Configuration file for schema and aggregates. Can be called
-                       multiple times for multple configuration files.
+      --config CONFIG  Configuration file to load. Can be called multiple times
+                       for multiple configuration files.
 
 
-For most use cases it can share a schema with ``karbon``. However, one could use
-``Chef``, ``puppet`` or a similar tool to templatize the schema, and replace 
-strings such as the ``host`` definition, so as to target a specific set of
-resources at reading the data.
+For most use cases it can share a configuration with ``karbon``. However, one 
+could use ``Chef``, ``puppet`` or a similar tool to templatize the 
+configuration, and replace strings such as the ``host`` definition, so as to 
+target a specific set of resources at reading the data.
 
-To reload the schema(s), send a ``SIGHUP`` to the ``torus`` process.
+To reload the configuration(s), send a ``SIGHUP`` to the ``torus`` process.
 
 ``torus`` will respond to ``http://$tcp/$command?$parameters`` for the 
 following commands, where ``$parameters`` is a standard URL encoded 
@@ -169,11 +169,13 @@ be a copy of the same for clients which are expecting data in ``graphite``
 format.
 
 
-Schema
-======
+Configuration
+=============
 
-The schema for ``torus`` is an extension of the ``kairos`` schema.  It is defined
-in a file reference on the command line, and includes the following: ::
+The configuration for ``torus`` includes a definition for schemas, aggregates,
+custom functions that can be used in queries, and debugging settings. The 
+schema for ``torus`` is an extension of the ``kairos`` schema. The 
+configuration files can include 1 or more of the following: ::
 
     SCHEMAS = {
 
@@ -269,6 +271,13 @@ in a file reference on the command line, and includes the following: ::
       ('application.result.<code>', 'application.http.status.<code>'),
     ]
 
+    # A named map of functions which can be used in requests to torus
+    TRANSFORMS = {
+      # Returns the number of elements
+      'size' : lambda row: len(row)
+    }
+    
+
 Debugging
 ---------
 
@@ -278,7 +287,7 @@ output which rules match the input string, which database that match will be sto
 aggregates that will be generated from the input rule, and then recursively any schemas and
 aggregates that match each aggregate. ::
 
-    usage: schema_debug [-h] [--schema SCHEMA] strings [strings ...]
+    usage: schema_debug [-h] [--config CONFIG] strings [strings ...]
 
     Debugging tool for schemas
 
@@ -287,8 +296,8 @@ aggregates that match each aggregate. ::
 
     optional arguments:
       -h, --help       show this help message and exit
-      --schema SCHEMA  Configuration file for schema and aggregates. Can be called
-                       multiple times for multiple configuration files.
+      --config CONFIG  Configuration file to load. Can be called multiple times
+                       for multiple configuration files.
 
 Torus also supports the ``DEBUG`` flag which can be defined in any of the
 configuration files and which will cause ``karbon`` to print to stdout. If 

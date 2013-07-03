@@ -1,14 +1,5 @@
-debugging-tools
-===============
-
-Rename torus and karbon processes for easy "kill -SIGHUP `pidof karbon`".
-
-Configuration files can include "DEBUG" stanza for turning on debug logging.
-Debugging output currently only implemented in karbon. See the "Debugging"
-section in the README for details.
-
-kairos-0.4.0
-============
+0.4.0
+=====
 
 Stat queries can be comma-separated values to join multiple timeseries.
 
@@ -16,10 +7,19 @@ Added "collapse" parameter to "/series" which supports collapsing all of the
 data in the date range into a single result. This supports easy computation of
 aggregates across a time range, such as "maximum value in the last 7 days".
 
-Schemas can include TRANSFORMS stanza for defining a named map of data 
+Schemas can include "TRANSFORMS" stanza for defining a named map of data 
 transforms that will be used when querying torus.
 
 Adding hiredis requirement as redis is not performant enough without it.
+
+Rename torus and karbon processes for easy "kill -SIGHUP `pidof karbon`".
+
+Configuration files can include "DEBUG" stanza for turning on debug logging.
+Debugging output currently only implemented in karbon. See the "Debugging"
+section in the README for details.
+
+Renamed command line argument "--schema" to "--config" to better reflect the
+nature of the files.
 
 0.3.3
 =====
