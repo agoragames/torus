@@ -13,9 +13,9 @@ from torus.configuration import Configuration
 
 parser = argparse.ArgumentParser(
   description='Debugging tool for schemas')
-parser.add_argument('--schema',
+parser.add_argument('--config',
   type=str, action='append', default=[],
-  help='Configuration file for schema and aggregates. Can be called multiple times for multiple configuration files.')
+  help='Configuration file to load. Can be called multiple times for multiple configuration files.')
 parser.add_argument('strings',
   type=str, nargs='+',
   help='One or more input strings to test against the scheams')
@@ -23,7 +23,7 @@ parser.add_argument('strings',
 args = parser.parse_args()
 
 c = Configuration()
-for fname in args.schema:
+for fname in args.config:
   c.load( fname )
 
 def print_matches(s, level=0, seen=None):

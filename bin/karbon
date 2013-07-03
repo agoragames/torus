@@ -20,9 +20,9 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--tcp',
   type=str, default='localhost:2003',
   help='TCP binding, in the form of "host:port", ":port", or "port". Defaults to "localhost:2003".')
-parser.add_argument('--schema',
+parser.add_argument('--config',
   type=str, action='append', default=[],
-  help='Configuration file for schema and aggregates. Can be called multiple times for multiple configuration files.')
+  help='Configuration file to load. Can be called multiple times for multiple configuration files.')
 
 args = parser.parse_args()
 
@@ -34,7 +34,7 @@ if len(bind_args):
   host = bind_args[0]
 
 c = Configuration()
-for fname in args.schema:
+for fname in args.config:
   c.load( fname )
 
 server = KarbonTcp( host=host, port=port, configuration=c )
