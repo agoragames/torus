@@ -25,6 +25,7 @@ class Schema(object):
   def __init__(self, name, config):
     self._name = name
     self._host = config.pop('host', 'redis://localhost:6379/0')
+    self._rolling = config.pop('rolling', 0)
 
     config.setdefault('type', 'count')
     config.setdefault('write_func', long_or_float)
@@ -68,7 +69,7 @@ class Schema(object):
         stat,val = self._transform(stat,val)
         if stat is None:
           return False
-      self.timeseries.insert(stat, val, timestamp)
+      self.timeseries.insert(stat, val, timestamp, intervals=self._rolling)
       return True
     return False
 

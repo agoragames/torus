@@ -1,3 +1,10 @@
+rolling-intervals
+=================
+
+Adds "rolling" option to schemas, allowing data to be inserted into multiple
+intervals at a time. This increases storage space but supports rapid
+calculation of aggregates over pre-determined interval ranges.
+
 0.4.0
 =====
 
