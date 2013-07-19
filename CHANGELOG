@@ -1,5 +1,5 @@
-rolling-intervals
-=================
+0.4.1
+=====
 
 Adds "rolling" option to schemas, allowing data to be inserted into multiple
 intervals at a time. This increases storage space but supports rapid
