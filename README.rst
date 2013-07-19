@@ -208,6 +208,15 @@ configuration files can include 1 or more of the following: ::
         # python regex library with no flags.
         match: [ 'application.hits.*',  ]
 
+        # Defines how many intervals before (negative) or after (positive) that
+        # a copy of data should be written to whenever data is inserted. The
+        # extra storage size offsets much faster calculation of aggregates over
+        # pre-determined date range.
+        #
+        # Example: for a schema storing daily values, will store a value as if
+        # it occurred any time in the last 30 days.
+        # rolling: -30
+
         # Optional, is a prefix for all keys in this histogram. If supplied
         # and it doesn't end with ":", it will be automatically appended.
         # prefix: 'application'
