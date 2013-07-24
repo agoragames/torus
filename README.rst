@@ -365,9 +365,10 @@ Use `nose <https://github.com/nose-devs/nose/>`_ to run the test suite. ::
 
   $ nosetests
 
-Future
-======
+Roadmap
+=======
 
+* Record metrics on karbon and torus usage
 * Investigate faster regular expression engines. `pyre2 <https://github.com/facebook/pyre2>`_ is currently in the running.
 * Expand supported stat naming (unicode, symbols, etc)
 * A ``relay`` host type for forwarding karbon data to another Carbon-compatible host
