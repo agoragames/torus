@@ -88,8 +88,15 @@ class Schema(object):
     Used for when schema implements several regular expressions, returns
     True if the stat matches this schema, False otherwise.
     '''
+    matches = set()
     for pattern in self._patterns:
-      if pattern.search(stat):
+      if isinstance(stat,(list,tuple)):
+        for s in stat:
+          if pattern.search(s):
+            matches.add(s)
+        if len(matches)==len(stat):
+          return True
+      elif pattern.search(stat):
         return True
     return False
 
