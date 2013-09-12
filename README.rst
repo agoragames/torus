@@ -105,17 +105,32 @@ Fetches data for one or more statistics and returns a list of objects for each s
     * sum - the sum of datapoints in each time slice.
     * count - the number of datapoints in each time slice.
 
+    Additionally, ``$func`` can be either a transform or a macro defined in the
+    configuration. The ``$func`` can be anything that matches the 
+    pattern ``[a-zA-Z0-9_]``.
+
 * format
 
     One of ``[graphite, json]``, where ``graphite`` is a Graphite-compatible json
     format and ``json`` offers more nuanced representation of ``kairos``' data
     structures.
 
-* condensed
+* condense
 
     One of ``[true, false]``, if ``kairos`` resolutions are configured for a 
     schema, determines whether resolutions are flattened or returned as-is. 
     Forced to ``true`` for ``graphite`` format.
+
+* collapse
+
+    One of ``[true, false]``, if ``true`` then all of the data for each time
+    interval will be collapsed into a single value. This is useful for
+    calculating aggregates across a range (e.g. "all hits in last 5 days"). 
+
+* schema
+
+    In cases where multiple schemas match a stat name, force a particular 
+    schema to be used.
 
 * interval
 
@@ -284,6 +299,25 @@ configuration files can include 1 or more of the following: ::
     TRANSFORMS = {
       # Returns the number of elements
       'size' : lambda row: len(row)
+    }
+
+    # A named map of configuration options so that "foo(stat)" will result in
+    # a fixed set of options passed to kairos. This is especially useful for
+    # using the customized read feature of kairos. This example assumes a 
+    # histogram stored in redis. A more complicated macro might use server-side
+    # scripting. All custom read functions exposed in kairos can be defined here.
+    # All fields of the query string, other than 'stat', can be set in the
+    # macro definition and will override those query parameters if they're
+    # provided. To use a transform in a macro, set the 'transform' field to
+    # either a string or a callable. Macros can make use of transforms defined
+    # in TRANSFORMS.
+    MACROS = {
+      'unique' : {
+        'fetch' : lambda handle,key: handle.hlen(key)
+        'condense' : lambda data: sum(data.values()),
+        'process_row' : lambda data: data,
+        'join_rows' : lambda rows: sum(rows),
+      }
     }
     
 

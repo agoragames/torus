@@ -21,6 +21,7 @@ class Configuration(object):
     self._schemas = []
     self._aggregates = Aggregates()
     self._transforms = {}
+    self._macros = {}
 
   @property
   def debug(self):
@@ -40,6 +41,7 @@ class Configuration(object):
     self._schemas = []
     self._aggregates = Aggregates()
     self._transforms = {}
+    self._macros = {}
     
     for fname in self._files:
       self._load_source( fname )
@@ -49,6 +51,19 @@ class Configuration(object):
     Get a named transform from the configurations, or None if not found.
     '''
     return self._transforms.get(name)
+
+  def macro(self, name):
+    '''
+    Get a named macro from the configurations, or None if not found.
+    '''
+    return self._macros.get(name)
+
+  def schema(self, name):
+    '''Get a schema by name, or None if not found.'''
+    for s in self._schemas:
+      if s.name == name:
+        return s
+    return None
 
   def schemas(self, stat):
     '''
@@ -101,6 +116,7 @@ class Configuration(object):
       schemas = getattr(mod,'SCHEMAS',{})
       aggregates = getattr(mod,'AGGREGATES',[])
       transforms = getattr(mod,'TRANSFORMS',{})
+      macros = getattr(mod,'MACROS',{})
 
       for name,schema in schemas.items():
         self.load_schema(name, schema)
@@ -108,5 +124,8 @@ class Configuration(object):
 
       for name,func in transforms.items():
         self._transforms[name] = func
+
+      for name,macro in macros.items():
+        self._macros[name] = macro
       
       self._debug = getattr(mod, 'DEBUG', self._debug)
