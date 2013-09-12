@@ -33,7 +33,7 @@ class Schema(object):
 
     # parse the patterns and bind the Schema.match function
     # TODO: optimize this binding even further to reduce lookups at runtime
-    self._patterns = config.pop('match', [])
+    self._patterns = self._original = config.pop('match', [])
     if isinstance(self._patterns, (tuple,list)):
       if len(self._patterns) != 1:
         self._patterns = [ re.compile(x) for x in self._patterns ]
@@ -88,7 +88,11 @@ class Schema(object):
     True if the stat matches this schema, False otherwise.
     '''
     for pattern in self._patterns:
-      if pattern.search(stat):
+      if isinstance(stat,(list,tuple)):
+        matches = filter(None, [pattern.search(s) for s in stat] )
+        if len(matches)==len(stat):
+          return True
+      elif pattern.search(stat):
         return True
     return False
 

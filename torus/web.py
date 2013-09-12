@@ -117,7 +117,8 @@ class Web(WSGIServer):
           func_name = None
         stat = stat_spec
 
-      stat = tuple(stat.split(','))
+      if ',' in stat:
+        stat = tuple(stat.split(','))
       stat_queries.setdefault( stat, {} )
       if func_name:
         # See if the function is defined by configuration
