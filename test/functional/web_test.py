@@ -58,6 +58,14 @@ for name,spec in SCHEMAS.iteritems():
 config.load_aggregate( AGGREGATES )
 config._transforms['unique'] = lambda dct: len(dct)
 
+config._macros['redis_keylen'] = {
+  'fetch' : lambda handle, key: handle.hlen(key),
+  'condense' : lambda data: sum(data.values()),
+  'process_row' : lambda data: data,
+  'join_rows' : lambda rows: sum(rows),
+  'collapse' : True,
+}
+
 # insert some test data, 2 hours in 30 second intervals
 for schema in config._schemas:
   schema.timeseries.delete( 'foo' )
@@ -151,15 +159,14 @@ class WebTest(Chai):
     assert_equals( counts['count(foo.bar.cat,foo.bar.dog)'],
        counts['count(foo.bar.cat)'] + counts['count(foo.bar.dog)'] )
 
-    # check the graphite version wherein there's always a "function" (mean)
-    # so the raw data and collapse function isn't exercised.
+    # check the json form
     request = {
       'stat' : [
         'foo.bar.cat,foo.bar.dog', 'foo.bar.cat', 'foo.bar.dog',
         'unique(foo.bar.cat,foo.bar.dog)', 'unique(foo.bar.cat)', 'unique(foo.bar.dog)'
       ],
-      'format' : 'json',
-      'collapse' : 'true',
+      'format' : ['json'],
+      'collapse' : ['true'],
     }
     result = self._request(request)
 
@@ -182,3 +189,18 @@ class WebTest(Chai):
        counts['unique(foo.bar.cat)'] )
     assert_equals( counts['unique(foo.bar.cat,foo.bar.dog)'],
        counts['unique(foo.bar.dog)'] )
+
+  def test_series_with_macros(self):
+    request = {
+      'stat' : ['redis_keylen(foo.bar.cat,foo.bar.dog)', 'redis_keylen(foo.bar.cat)', 'redis_keylen(foo.bar.dog)'],
+      'schema' : ['redis-minutely'],
+    }
+    result = self._request(request)
+
+    counts = {}
+    for row in result:
+      counts[ row['stat'] ] = row['datapoints'].values()[-1]
+
+    assert_not_equals( 0, counts['redis_keylen(foo.bar.cat,foo.bar.dog)'] )
+    assert_equals( counts['redis_keylen(foo.bar.cat,foo.bar.dog)'],
+       counts['redis_keylen(foo.bar.cat)'] + counts['redis_keylen(foo.bar.dog)'] )
