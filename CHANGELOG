@@ -1,5 +1,5 @@
-macros
-======
+0.5.0
+=====
 
 Renamed "condensed" parameter in "/series" to "condense" to match 
 latest kairos.
