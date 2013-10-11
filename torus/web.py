@@ -12,8 +12,21 @@ from urlparse import *
 from gevent.pywsgi import WSGIServer
 import parsedatetime as pdt
 
-FUNC_MATCH = re.compile('^(?P<func>[a-z]+)\((?P<stat>[^\)]+)\)$')
+FUNC_MATCH = re.compile('^(?P<func>[a-zA-Z0-9_]+)\((?P<stat>[^\)]+)\)$')
 cal = pdt.Calendar()
+
+def _parse_time(t):
+  '''
+  Parse a time value from a string, return a float in Unix epoch format.
+  If no time can be parsed from the string, return None.
+  '''
+  try:
+    return float(t)
+  except ValueError:
+    match = cal.parse(t)
+    if match and match[1]:
+      return time.mktime( match[0] )
+  return None
 
 def extract(dct, transform):
   '''
@@ -69,13 +82,16 @@ class Web(WSGIServer):
     rval = []
 
     format = params.setdefault('format',['graphite'])[0]
-    condensed = False
+    condense = False
+    fetch = None
+    process_row = None
+    join_rows = None
 
     # Force condensed data for graphite return
     if format=='graphite':
-      condensed = True
+      condense = True
     else:
-      condensed = bool(params.get('condensed',[False])[0])
+      condense = bool(params.get('condense',[False])[0])
 
     collapse = bool(params.get('collapse',[False])[0])
 
@@ -83,25 +99,13 @@ class Web(WSGIServer):
     start = params.get('start', [''])[0]
     end = params.get('end', [''])[0]
     if start:
-      try:
-        start = float(start)
-      except ValueError:
-        match = cal.parse(start)
-        if match and match[1]:
-          start = time.mktime( match[0] )
-        else:
-          start = None
+      start = _parse_time(start)
     if end:
-      try:
-        end = float(end)
-      except ValueError:
-        match = cal.parse(end)
-        if match and match[1]:
-          end = time.mktime( match[0] )
-        else:
-          end = None
+      end = _parse_time(end)
 
     steps = int(params.get('steps',[0])[0])
+    schema_name = params.get('schema',[None])[0]
+    interval = params.get('interval',[None])[0]
 
     # First assemble the unique stats and the functions.
     stat_queries = {}
@@ -119,8 +123,30 @@ class Web(WSGIServer):
 
       stat = tuple(stat.split(','))
       stat_queries.setdefault( stat, {} )
+      
+      # First process as a macro
       if func_name:
-        # See if the function is defined by configuration
+        macro = self._configuration.macro(func_name)
+        if macro:
+          format = macro.get( 'format', format )
+          fetch = macro.get( 'fetch' )
+          process_row = macro.get( 'process_row' )
+          join_rows = macro.get( 'join_rows' )
+          condense = macro.get( 'condense', condense )
+          collapse = macro.get( 'collapse', collapse )
+          start = macro.get( 'start', start )
+          end = macro.get( 'end', end )
+          steps = macro.get( 'steps', steps )
+          func_name = macro.get( 'transform' )
+          schema_name = macro.get( 'schema', schema_name )
+          interval = macro.get( 'interval', interval )
+          if start:
+            start = _parse_time(start)
+          if end:
+            end = _parse_time(end)
+
+      # If not a macro, or the macro has defined its own transform
+      if func_name:
         func = self._configuration.transform(func_name) or func_name
         stat_queries[stat][stat_spec] = (func_name, func)
       else:
@@ -131,11 +157,27 @@ class Web(WSGIServer):
     # matches the stat and has a matching interval if one is specified. If there
     # isn't one specified, then pick the first match and the first interval.
     for stat,specs in stat_queries.iteritems():
+      schema = self._configuration.schema(schema_name)
 
-      schemas = self._configuration.schemas(stat)
-      if not schemas:
-        # No schema found, return an empty data set for each query
-        # on that stat
+      # If user-requested schema (or none) not found, try to find one.
+      if not schema and not schema_name:
+        schemas = self._configuration.schemas(stat)
+        for schema in schemas:
+          if interval in schema.config['intervals'].keys():
+            break
+        else:
+          # No matching interval found, so if there were any schemas and the
+          # user didn't define an interval, try to find one.
+          if schema and not interval:
+            interval = schema.config['intervals'].keys()[0]
+
+      # If user-requested schema found, resolve interval if necessary
+      elif not interval:
+        interval = schema.config['intervals'].keys()[0]
+
+      # No schema found, return an empty data set for each query
+      # on that stat
+      if not schema:
         for spec,transform in specs.items():
           rval.append( {
             'stat' : spec,
@@ -146,17 +188,6 @@ class Web(WSGIServer):
           } )
         continue
 
-      interval = params.get('interval',[None])[0]
-
-      for schema in schemas:
-        if interval in schema.config['intervals'].keys():
-          break
-      else:
-        # No interval found, pick the first interval of the chosen schema
-        # TODO: pick the finest or largest interval?
-        interval = schema.config['intervals'].keys()[0]
-
-
       # Filter out the unique transforms 
       transforms = specs.values()
       if transforms==[(None,None)]:
@@ -165,7 +196,8 @@ class Web(WSGIServer):
         transforms = [ t[1] for t in transforms ]
 
       data = schema.timeseries.series(stat, interval,
-        condensed=condensed, transform=transforms,
+        condense=condense, transform=transforms,
+        fetch=fetch, process_row=process_row, join_rows=join_rows,
         start=start, end=end, steps=steps, collapse=collapse)
 
       # If there were any transforms, then that means there's a list to append
@@ -175,7 +207,6 @@ class Web(WSGIServer):
           # This transposition of the way in which kairos returns the
           # transforms and how torus presents it is most unfortunate.
           # In both cases I prefer the format for its given role.
-          # TODO: Extract the data
           rval.append( {
             'stat' : spec,
             'stat_name' : stat,
@@ -187,7 +218,7 @@ class Web(WSGIServer):
           } )
       else:
         rval.append( {
-          'stat' : stat,
+          'stat' : specs.keys()[0],
           'stat_name' : stat,
           'target' : stat,  # graphite compatible key
           'schema' : schema.name,
