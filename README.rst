@@ -388,9 +388,13 @@ If installing from source:
 
     pip install -r requirements.pip
 
-Note that torus does not by default require 
-`hiredis <http://pypi.python.org/pypi/hiredis>`_ though it is
-strongly recommended.
+SQL
+---
+
+Torus installs SQLAlchemy to support SQL. To use your dialect of choice, you
+will likely have to install addition packages.  Refer to the
+`documentation <http://docs.sqlalchemy.org/en/latest/dialects/index.html>`_ 
+for more details.
 
 Tests
 =====
