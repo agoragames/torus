@@ -48,9 +48,13 @@ class Schema(object):
 
     self._client = self._init_client()
 
-    # TODO: Remove the need for this and add accessors to Schema or Kairos
     self.config = config
     self.timeseries = Timeseries(self._client, **config)
+
+    # Bind some of the timeseries methods to this for convenience
+    self.list = self.timeseries.list
+    self.properties = self.timeseries.properties
+    self.iterate = self.timeseries.iterate
 
   @property
   def name(self):
