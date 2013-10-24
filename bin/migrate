@@ -1,0 +1,138 @@
+#!/usr/bin/env python
+'''
+Copyright (c) 2013, Agora Games, LLC All rights reserved.
+
+https://github.com/agoragames/torus/blob/master/LICENSE.txt
+'''
+import sys, os, argparse, re, signal
+from datetime import datetime
+
+import gevent, gevent.monkey, gevent.pool
+gevent.monkey.patch_all()
+
+from torus.configuration import Configuration
+from torus.util import parse_time
+
+def friendly_time(t):
+  return str(datetime.utcfromtimestamp(t))
+
+parser = argparse.ArgumentParser(
+  description='A tool to migrate data from one schema to another')
+parser.add_argument('--config',
+  type=str, action='append', default=[], required=True,
+  help='Configuration file to load. Can be called multiple times for multiple configuration files.')
+parser.add_argument('--source',
+  type=str, required=True,
+  help='The name of the source schema [required]')
+parser.add_argument('--destination',
+  type=str, required=True,
+  help='The name of the destination schema [required]')
+parser.add_argument('--interval',
+  type=str, required=True,
+  help='The name of the interval from which to read data [required]')
+parser.add_argument('--start',
+  type=str, default=None,
+  help='Only copy stats occurring on or after this date. Same format as web parameter. [optional]')
+parser.add_argument('--end',
+  type=str, default=None,
+  help='Only copy stats occurring on or before this date. Same format as web parameter. [optional]')
+parser.add_argument('--concurrency',
+  type=int, default=10,
+  help='Set the concurrency on the schema target writing. Defaults to 10.')
+parser.add_argument('--stat',
+  type=str, action='append', default=[],
+  help='The name of the stat to copy. Can be called multiple times for a list of stats. If not provided, all stats will be copied. [optional]')
+parser.add_argument('--match',
+  type=str, default=None,
+  help='Pattern match to migrate a subset of the data. [optional]')
+parser.add_argument('--dry-run',
+  action='store_true', default=False,
+  help='Print out status but do not save results in the destination schema. [optional]')
+parser.add_argument('--verbose',
+  action='store_true', default=False,
+  help='Print out even more information during the migration [optional]')
+
+args = parser.parse_args()
+
+c = Configuration()
+for fname in args.config:
+  c.load( fname )
+
+to_copy = args.stat
+source_schema = c.schema( args.source )
+target_schema = c.schema( args.destination )
+interval = args.interval
+start = args.start
+end = args.end
+pattern = args.match
+
+insert_pool = gevent.pool.Pool(args.concurrency)
+schema_pool = gevent.pool.Pool(10)
+
+# Pre-process our arguments
+if not to_copy:
+  to_copy = source_schema.list()
+if start:
+  start = parse_time(start)
+if end:
+  end = parse_time(end)
+if pattern:
+  pattern = re.compile(pattern)
+
+def spawn_target(timestamp, data):
+  # This type detection is an ugly hack and might require a "replay" API
+  # in kairos to completely clean it up.
+  if isinstance(data, list):
+    for val in list:
+      store(stat, val, timestamp)
+  elif isinstance(data, dict):
+    for k,v in data.items():
+      for x in range(v):
+        store(stat, k, timestamp)
+  elif isinstance(data, (int,long,float,str,unicode)):
+    store(stat, data, timestamp)
+
+def store(stat, value, timestamp):
+  if args.verbose:
+    print '  INSERT', stat, value, friendly_time(timestamp)
+  if not args.dry_run:
+    insert_pool.spawn( target_schema.store, stat, value, timestamp )
+
+for idx,stat in enumerate(to_copy):
+  if not source_schema.match( stat ): continue
+  print idx+1, len(to_copy), 'migrating', stat
+  
+  if pattern and pattern.search(stat) is None:
+    print '  SKIP, does not match filter'
+    continue
+
+  props = source_schema.properties(stat)
+  if interval in props:
+    print '  FROM', friendly_time(props[interval]['first']), 'to', friendly_time(props[interval]['last'])
+  else:
+    print '  SKIP', interval, 'has no data'
+    continue
+
+  last_timestamp = None
+  for timestamp,data in source_schema.iterate(stat, args.interval):
+    if start and timestamp<start:
+      if args.verbose:
+        print '  SKIP', friendly_time(timestamp), 'before', friendly_time(start)
+      continue
+    if end and timestamp>end:
+      if args.verbose:
+        print '  SKIP', friendly_time(timestamp), 'after', friendly_time(end)
+      continue
+    if timestamp!=last_timestamp:
+      print '  STARTING', friendly_time(timestamp)
+      last_timestamp=timestamp
+
+    schema_pool.spawn( spawn_target, timestamp, data )
+
+while len(schema_pool):
+  print 'Waiting for', len(schema_pool), 'jobs to finish populating'
+  schema_pool.join( timeout=60 )
+
+while len(insert_pool):
+  print 'Waiting for', len(insert_pool), 'inserts to complete'
+  insert_pool.join( timeout=60 )

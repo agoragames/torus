@@ -369,6 +369,45 @@ Intervals
 Aggregates
 ----------
 
+Migration
+=========
+
+There will be times that you need to migrate data from one schema to another. 
+Torus ships with ``migrate`` to facilitate that. ::
+
+    usage: migrate [-h] --config CONFIG --source SOURCE --destination DESTINATION
+                   --interval INTERVAL [--start START] [--end END]
+                   [--concurrency CONCURRENCY] [--stat STAT] [--match MATCH]
+                   [--dry-run] [--verbose]
+
+    A tool to migrate data from one schema to another
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --config CONFIG       Configuration file to load. Can be called multiple
+                            times for multiple configuration files.
+      --source SOURCE       The name of the source schema [required]
+      --destination DESTINATION
+                            The name of the destination schema [required]
+      --interval INTERVAL   The name of the interval from which to read data
+                            [required]
+      --start START         Only copy stats occurring on or after this date. Same
+                            format as web parameter. [optional]
+      --end END             Only copy stats occurring on or before this date. Same
+                            format as web parameter. [optional]
+      --concurrency CONCURRENCY
+                            Set the concurrency on the schema target writing.
+                            Defaults to 10.
+      --stat STAT           The name of the stat to copy. Can be called multiple
+                            times for a list of stats. If not provided, all stats
+                            will be copied. [optional]
+      --match MATCH         Pattern match to migrate a subset of the data.
+                            [optional]
+      --dry-run             Print out status but do not save results in the
+                            destination schema. [optional]
+      --verbose             Print out even more information during the migration
+                            [optional]
+
 
 Installation
 ============
