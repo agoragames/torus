@@ -1,3 +1,15 @@
+kairos-0.7.0
+============
+
+Added support for SQL databases in schemas.
+
+Added "bin/migrate" tool for migrating data between schemas.
+
+Default database is in-memory "sqlite:///:memory:"
+
+Added "host_settings" schema option.
+
+
 0.5.0
 =====
 

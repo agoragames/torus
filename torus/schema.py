@@ -26,7 +26,8 @@ class Schema(object):
 
   def __init__(self, name, config):
     self._name = name
-    self._host = config.pop('host', 'redis://localhost:6379/0')
+    self._host = config.pop('host', 'sqlite:///:memory:')
+    self._host_settings = config.pop('host_settings', {})
     self._rolling = config.pop('rolling', 0)
 
     config.setdefault('type', 'count')
@@ -116,11 +117,11 @@ class Schema(object):
     location = urlparse(self._host)
 
     if location.scheme == 'redis':
-      return Redis.from_url( self._host  )
+      return Redis.from_url( self._host, **self._host_settings )
 
     elif location.scheme == 'mongodb':
       # Use the whole host string so that mongo driver can do its thing
-      client = MongoClient( self._host )
+      client = MongoClient( self._host, **self._host_settings )
       
       # Stupid urlparse has a "does this scheme use queries" registrar,
       # so copy that work here. Then pull out the optional database name.
@@ -132,7 +133,8 @@ class Schema(object):
       return client[ path ]
 
     elif 'sql' in location.scheme:
-      return create_engine( self._host )
+      # TODO: some way for pool size to be configured
+      return create_engine( self._host, **self._host_settings )
 
     elif location.scheme == 'cassandra':
       host = location.netloc or "localhost:9160"
