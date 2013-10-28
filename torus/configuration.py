@@ -65,10 +65,13 @@ class Configuration(object):
         return s
     return None
 
-  def schemas(self, stat):
+  def schemas(self, stat=None):
     '''
     Get the matching schemas for a stat, or an empty list if there aren't any.
+    If no stat name provided, will return a list of all schemas.
     '''
+    if stat is None:
+      return self._schemas[:]
     return [s for s in self._schemas if s.match(stat)]
 
   def process(self, stat, val, timestamp=None, seen=None):

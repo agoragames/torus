@@ -48,9 +48,14 @@ class Web(WSGIServer):
     params = parse_qs( env['QUERY_STRING'] )
    
     try:
-      # changing name to 'series', still supporting 'data' for now
-      if cmd in ('data', 'series'):
+      if cmd == 'series':
         return ujson.dumps( self._series(params, start_response), double_precision=4 )
+
+      elif cmd == 'list':
+        return ujson.dumps( self._list(params, start_response) )
+
+      elif cmd == 'properties':
+        return ujson.dumps( self._properties(params, start_response) )
     except Exception as e:
       import traceback
       traceback.print_exc()
@@ -60,6 +65,29 @@ class Web(WSGIServer):
 
     start_response( '404 Not Found', [('content-type','application/json')] )
     return []
+
+  def _list(self, params, start_response):
+    '''
+    Return a list of all stored stat names.
+    '''
+    # Future versions may add an "extended" view that includes properties.
+    rval = set()
+    for schema in self._configuration.schemas():
+      rval.update( schema.list() )
+    return sorted(rval)
+
+  def _properties(self, params, start_response):
+    '''
+    Fetch the properties of a stat.
+    '''
+    rval = {}
+
+    for stat in params['stat']:
+      rval.setdefault( stat, {} )
+      for schema in self._configuration.schemas(stat):
+        rval[stat][schema.name] == schema.properties(stat)
+
+    return rval
 
   def _series(self, params, start_response):
     '''

@@ -9,6 +9,10 @@ Default database is in-memory "sqlite:///:memory:"
 
 Added "host_settings" schema option.
 
+Removed support for "/data" URI.
+
+Added "/list" and "/properties" URIs.
+
 
 0.5.0
 =====
