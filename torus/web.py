@@ -10,23 +10,9 @@ import time
 import ujson
 from urlparse import *
 from gevent.pywsgi import WSGIServer
-import parsedatetime as pdt
+from .util import parse_time
 
 FUNC_MATCH = re.compile('^(?P<func>[a-zA-Z0-9_]+)\((?P<stat>[^\)]+)\)$')
-cal = pdt.Calendar()
-
-def _parse_time(t):
-  '''
-  Parse a time value from a string, return a float in Unix epoch format.
-  If no time can be parsed from the string, return None.
-  '''
-  try:
-    return float(t)
-  except ValueError:
-    match = cal.parse(t)
-    if match and match[1]:
-      return time.mktime( match[0] )
-  return None
 
 def extract(dct, transform):
   '''
@@ -99,9 +85,9 @@ class Web(WSGIServer):
     start = params.get('start', [''])[0]
     end = params.get('end', [''])[0]
     if start:
-      start = _parse_time(start)
+      start = parse_time(start)
     if end:
-      end = _parse_time(end)
+      end = parse_time(end)
 
     steps = int(params.get('steps',[0])[0])
     schema_name = params.get('schema',[None])[0]
@@ -141,9 +127,9 @@ class Web(WSGIServer):
           schema_name = macro.get( 'schema', schema_name )
           interval = macro.get( 'interval', interval )
           if start:
-            start = _parse_time(start)
+            start = parse_time(start)
           if end:
-            end = _parse_time(end)
+            end = parse_time(end)
 
       # If not a macro, or the macro has defined its own transform
       if func_name:
@@ -194,6 +180,9 @@ class Web(WSGIServer):
         transforms = None
       else:
         transforms = [ t[1] for t in transforms ]
+
+      start = start or None
+      end = end or None
 
       data = schema.timeseries.series(stat, interval,
         condense=condense, transform=transforms,
