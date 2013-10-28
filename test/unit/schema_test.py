@@ -22,14 +22,18 @@ class SchemaTest(Chai):
       } 
     }
 
+    timeseries = mock()
     expect( schema.Timeseries ).args( var('client'), type='count',
       read_func=long_or_float, write_func=long_or_float, intervals = {
         'minute':{'step':60}
-      } )
+      } ).returns( timeseries )
 
     s = Schema('name', config)
     assert_equals( 'name', s._name )
     assert_equals( s.match, s._match_single )
+    assert_equals( s.list, timeseries.list )
+    assert_equals( s.properties, timeseries.properties )
+    assert_equals( s.iterate, timeseries.iterate )
 
   def test_init_more_options(self):
     config = {
@@ -47,13 +51,35 @@ class SchemaTest(Chai):
     expect( schema.Timeseries ).args( var('client'), type='count',
       read_func=var('rfunc'), write_func=var('wfunc'), intervals = {
         'minute':{'step':60}
-      } )
+      } ).returns( mock() )
 
     s = Schema('name', config)
     assert_equals( 'name', s._name )
     assert_equals( s.match, s._match_list )
     assert_equals( 0.2, var('rfunc').value('0.2') )
     assert_equals( '0.333', var('wfunc').value(0.3333333333) )
+
+  def test_init_cassandra(self):
+    mock( schema, 'cql' )
+    expect( schema.cql.connect ).args( 'localhost', 9160, 'torus', cql_version='3.0.0' ).times(3)
+    expect( schema.cql.connect ).args( 'ip.com', 3678, 'torus', cql_version='3.0.0' )
+    expect( schema.cql.connect ).args( 'ip.com', 3678, 'keymaster', cql_version='3.0.0' )
+    expect( schema.cql.connect ).args( 'ip.com', 4321, 'gatekeeper', cql_version='3.0.0' )
+    expect( schema.cql.connect ).args( 'ip.com', 4321, 'gatekeeper', cql_version='3.0.0', 
+      user='name', password='pass', consistency_level='QUORUM' )
+    expect( schema.Timeseries ).returns( mock() )
+
+    s = Schema('name', {'host':'cassandra://'} )
+    s = Schema('name', {'host':'cassandra://localhost'} )
+    s = Schema('name', {'host':'cassandra://localhost:9160'} )
+    s = Schema('name', {'host':'cassandra://ip.com:3678'} )
+    s = Schema('name', {'host':'cassandra://ip.com:3678/keymaster'} )
+    
+    s = Schema('name', {'host':'cassandra://ip.com:4321/gatekeeper?foo=bar'} )
+    s = Schema('name', {
+      'host':'cassandra://ip.com:4321/gatekeeper?foo=bar',
+      'host_settings':{'user':'name', 'password':'pass', 'consistency_level':'QUORUM'}
+    } )
 
   def test_match_single(self):
     config = {

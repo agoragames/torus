@@ -11,6 +11,9 @@ pymongo>=2.5.0
 # latest sqlalchemy
 sqlalchemy>=0.8.3
 
+# latest cql
+cql>=1.4.0
+
 # gevent
 # NOTE: recommend the 1.0 release candidates
 gevent

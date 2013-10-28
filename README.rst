@@ -189,8 +189,10 @@ Configuration
 
 The configuration for ``torus`` includes a definition for schemas, aggregates,
 custom functions that can be used in queries, and debugging settings. The 
-schema for ``torus`` is an extension of the ``kairos`` schema. The 
-configuration files can include 1 or more of the following: ::
+schema for ``torus`` is an extension of the ``kairos`` schema; each of the 
+key-value pairs in a schema definition will be passed to the timeseries
+`constructor <https://github.com/agoragames/kairos#constructor>`_.
+The configuration files can include 1 or more of the following: ::
 
     SCHEMAS = {
 
@@ -205,10 +207,16 @@ configuration files can include 1 or more of the following: ::
         # The database type, host and database identifier in which the 
         # timeseries is stored. If this is not a string, assumed to be a 
         # connection instance and will be used natively (e.g. for Redis
-        # unix domain sockets). The full redis and mongodb URI schemes are
-        # supported (requires redis 2.7.5).
+        # unix domain sockets). The full redis, mongo and SQLite URI schemes 
+        # are supported (requires redis 2.7.5).
         #
         # http://docs.mongodb.org/manual/reference/connection-string/
+        # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls
+        #
+        # Cassandra URLs are in the form "cassandra://host[:port]/[keyspace],
+        # where the keyspace defaults to "torus". The host settings
+        # [user,password,consistency_level] are supported.
+        # https://code.google.com/a/apache-extras.org/p/cassandra-dbapi2/source/browse/cql/connection.py
         #
         # host: 'redis://localhost'
         # host: 'redis://localhost/3'
@@ -216,6 +224,18 @@ configuration files can include 1 or more of the following: ::
         # host: 'mongodb://localhost:27018/timeseries'
         # host: 'mongodb://guest:host@localhost/authed_db'
         host: 'redis://localhost:6379/0'
+
+        # Optional, a dictionary of parameters to pass as keyword arguments to
+        # the database handle constructor.
+        #
+        #   Redis:      passed to `Redis.from_url()`
+        #   Mongo:      passed to `MongoClient()`
+        #   SQL:        passed to `sqlalchemy.create_engine()`
+        #   Cassandra:  passed to `cql.connect()`
+        #
+        # host_settings: {
+        #   connection_pool=redis.connection.ConnectionPool(max_connections=50)
+        # }
 
         # Patterns for any matching stats to store in this schema. If this is
         # a string, matches just one pattern, else if it's a list of strings,

@@ -10,6 +10,8 @@ import re
 from redis import Redis
 from pymongo import MongoClient
 from kairos import Timeseries
+from sqlalchemy import create_engine
+import cql
 
 def long_or_float(v):
   try:
@@ -128,5 +130,22 @@ class Schema(object):
       path = re.search('[/]*([\w]*)', path).groups()[0] or 'torus'
 
       return client[ path ]
+
+    elif 'sql' in location.scheme:
+      return create_engine( self._host )
+
+    elif location.scheme == 'cassandra':
+      host = location.netloc or "localhost:9160"
+      if re.search(":[0-9]+$", host):
+        ip,port = host.split(':')
+      else:
+        ip = host
+        port = 9160
+
+      keyspace = location.path[1:] or 'torus'
+      if '?' in keyspace:
+        keyspace,params = keyspace.split('?')
+
+      return cql.connect(ip, int(port), keyspace, cql_version='3.0.0', **self._host_settings)
 
     raise ValueError("unsupported scheme", location.scheme)
