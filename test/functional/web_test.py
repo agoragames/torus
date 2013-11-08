@@ -95,9 +95,7 @@ class WebTest(Chai):
     Helper to make a request and confirm that it can be encoded. Needed
     until this test actually starts a webserver and queries it.
     '''
-    start_response = mock()
-    expect(start_response)
-    result = web._series(request, start_response)
+    result = web._series(request)
     ujson.dumps( result, double_precision=4 )
     return result
 
