@@ -10,7 +10,9 @@ import time
 import ujson
 from urlparse import *
 from gevent.pywsgi import WSGIServer
+
 from .util import parse_time
+from .exceptions import *
 
 FUNC_MATCH = re.compile('^(?P<func>[a-zA-Z0-9_]+)\((?P<stat>[^\)]+)\)$')
 
@@ -49,13 +51,25 @@ class Web(WSGIServer):
    
     try:
       if cmd == 'series':
-        return ujson.dumps( self._series(params, start_response), double_precision=4 )
+        result = self._series(params)
 
       elif cmd == 'list':
-        return ujson.dumps( self._list(params, start_response) )
+        result = self._list(params)
 
       elif cmd == 'properties':
-        return ujson.dumps( self._properties(params, start_response) )
+        result = self._properties(params)
+
+      else:
+        raise HttpNotFound()
+
+      start_response('200 OK', [('content-type','application/json')] )
+      return [ ujson.dumps(result, double_precision=4) ]
+
+    except HttpError as e:
+      start_response( '%s %s'%(e.code, e.msg), 
+        [('content-type','application/json')] )
+      return []
+      
     except Exception as e:
       import traceback
       traceback.print_exc()
@@ -66,18 +80,25 @@ class Web(WSGIServer):
     start_response( '404 Not Found', [('content-type','application/json')] )
     return []
 
-  def _list(self, params, start_response):
+  def _list(self, params):
     '''
     Return a list of all stored stat names.
     '''
     # Future versions may add an "extended" view that includes properties.
+    schema_name = params.get('schema',[None])[0]
     rval = set()
-    for schema in self._configuration.schemas():
+
+    if schema_name:
+      schema = self._configuration.schema(schema_name)
+      if not schema:
+        raise HttpNotFound()
       rval.update( schema.list() )
-    start_response('200 OK', [('content-type','application/json')] )
+    else:
+      for schema in self._configuration.schemas():
+        rval.update( schema.list() )
     return sorted(rval)
 
-  def _properties(self, params, start_response):
+  def _properties(self, params):
     '''
     Fetch the properties of a stat.
     '''
@@ -88,10 +109,9 @@ class Web(WSGIServer):
       for schema in self._configuration.schemas(stat):
         rval[stat][schema.name] == schema.properties(stat)
 
-    start_response('200 OK', [('content-type','application/json')] )
     return rval
 
-  def _series(self, params, start_response):
+  def _series(self, params):
     '''
     Handle the data URL.
     '''
@@ -245,5 +265,4 @@ class Web(WSGIServer):
           'datapoints' : data,
         } )
 
-    start_response('200 OK', [('content-type','application/json')] )
     return rval

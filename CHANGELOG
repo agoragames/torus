@@ -13,6 +13,9 @@ Removed support for "/data" URI.
 
 Added "/list" and "/properties" URIs.
 
+Fixed significant performance degradation in all endpoints by correctly
+using WSGI.
+
 
 0.5.0
 =====
