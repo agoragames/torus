@@ -74,6 +74,7 @@ class Web(WSGIServer):
     rval = set()
     for schema in self._configuration.schemas():
       rval.update( schema.list() )
+    start_response('200 OK', [('content-type','application/json')] )
     return sorted(rval)
 
   def _properties(self, params, start_response):
@@ -87,6 +88,7 @@ class Web(WSGIServer):
       for schema in self._configuration.schemas(stat):
         rval[stat][schema.name] == schema.properties(stat)
 
+    start_response('200 OK', [('content-type','application/json')] )
     return rval
 
   def _series(self, params, start_response):
