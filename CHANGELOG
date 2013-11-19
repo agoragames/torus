@@ -1,12 +1,7 @@
-kairos-0.8.0
-============
+0.6.0
+=====
 
-Added support for Cassandra in schemas
-
-kairos-0.7.0
-============
-
-Added support for SQL databases in schemas.
+Added support for SQL and Cassandra databases in schemas.
 
 Added "bin/migrate" tool for migrating data between schemas.
 
@@ -20,7 +15,6 @@ Added "/list" and "/properties" URIs.
 
 Fixed significant performance degradation in all endpoints by correctly
 using WSGI.
-
 
 0.5.0
 =====
