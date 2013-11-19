@@ -10,6 +10,8 @@ import re
 from redis import Redis
 from pymongo import MongoClient
 from kairos import Timeseries
+from sqlalchemy import create_engine
+import cql
 
 def long_or_float(v):
   try:
@@ -24,7 +26,8 @@ class Schema(object):
 
   def __init__(self, name, config):
     self._name = name
-    self._host = config.pop('host', 'redis://localhost:6379/0')
+    self._host = config.pop('host', 'sqlite:///:memory:')
+    self._host_settings = config.pop('host_settings', {})
     self._rolling = config.pop('rolling', 0)
 
     config.setdefault('type', 'count')
@@ -48,9 +51,13 @@ class Schema(object):
 
     self._client = self._init_client()
 
-    # TODO: Remove the need for this and add accessors to Schema or Kairos
     self.config = config
     self.timeseries = Timeseries(self._client, **config)
+
+    # Bind some of the timeseries methods to this for convenience
+    self.list = self.timeseries.list
+    self.properties = self.timeseries.properties
+    self.iterate = self.timeseries.iterate
 
   @property
   def name(self):
@@ -110,11 +117,11 @@ class Schema(object):
     location = urlparse(self._host)
 
     if location.scheme == 'redis':
-      return Redis.from_url( self._host  )
+      return Redis.from_url( self._host, **self._host_settings )
 
     elif location.scheme == 'mongodb':
       # Use the whole host string so that mongo driver can do its thing
-      client = MongoClient( self._host )
+      client = MongoClient( self._host, **self._host_settings )
       
       # Stupid urlparse has a "does this scheme use queries" registrar,
       # so copy that work here. Then pull out the optional database name.
@@ -124,5 +131,23 @@ class Schema(object):
       path = re.search('[/]*([\w]*)', path).groups()[0] or 'torus'
 
       return client[ path ]
+
+    elif 'sql' in location.scheme:
+      # TODO: some way for pool size to be configured
+      return create_engine( self._host, **self._host_settings )
+
+    elif location.scheme == 'cassandra':
+      host = location.netloc or "localhost:9160"
+      if re.search(":[0-9]+$", host):
+        ip,port = host.split(':')
+      else:
+        ip = host
+        port = 9160
+
+      keyspace = location.path[1:] or 'torus'
+      if '?' in keyspace:
+        keyspace,params = keyspace.split('?')
+
+      return cql.connect(ip, int(port), keyspace, cql_version='3.0.0', **self._host_settings)
 
     raise ValueError("unsupported scheme", location.scheme)

@@ -10,23 +10,11 @@ import time
 import ujson
 from urlparse import *
 from gevent.pywsgi import WSGIServer
-import parsedatetime as pdt
+
+from .util import parse_time
+from .exceptions import *
 
 FUNC_MATCH = re.compile('^(?P<func>[a-zA-Z0-9_]+)\((?P<stat>[^\)]+)\)$')
-cal = pdt.Calendar()
-
-def _parse_time(t):
-  '''
-  Parse a time value from a string, return a float in Unix epoch format.
-  If no time can be parsed from the string, return None.
-  '''
-  try:
-    return float(t)
-  except ValueError:
-    match = cal.parse(t)
-    if match and match[1]:
-      return time.mktime( match[0] )
-  return None
 
 def extract(dct, transform):
   '''
@@ -62,9 +50,26 @@ class Web(WSGIServer):
     params = parse_qs( env['QUERY_STRING'] )
    
     try:
-      # changing name to 'series', still supporting 'data' for now
-      if cmd in ('data', 'series'):
-        return ujson.dumps( self._series(params, start_response), double_precision=4 )
+      if cmd == 'series':
+        result = self._series(params)
+
+      elif cmd == 'list':
+        result = self._list(params)
+
+      elif cmd == 'properties':
+        result = self._properties(params)
+
+      else:
+        raise HttpNotFound()
+
+      start_response('200 OK', [('content-type','application/json')] )
+      return [ ujson.dumps(result, double_precision=4) ]
+
+    except HttpError as e:
+      start_response( '%s %s'%(e.code, e.msg), 
+        [('content-type','application/json')] )
+      return []
+      
     except Exception as e:
       import traceback
       traceback.print_exc()
@@ -75,7 +80,38 @@ class Web(WSGIServer):
     start_response( '404 Not Found', [('content-type','application/json')] )
     return []
 
-  def _series(self, params, start_response):
+  def _list(self, params):
+    '''
+    Return a list of all stored stat names.
+    '''
+    # Future versions may add an "extended" view that includes properties.
+    schema_name = params.get('schema',[None])[0]
+    rval = set()
+
+    if schema_name:
+      schema = self._configuration.schema(schema_name)
+      if not schema:
+        raise HttpNotFound()
+      rval.update( schema.list() )
+    else:
+      for schema in self._configuration.schemas():
+        rval.update( schema.list() )
+    return sorted(rval)
+
+  def _properties(self, params):
+    '''
+    Fetch the properties of a stat.
+    '''
+    rval = {}
+
+    for stat in params['stat']:
+      rval.setdefault( stat, {} )
+      for schema in self._configuration.schemas(stat):
+        rval[stat][schema.name] == schema.properties(stat)
+
+    return rval
+
+  def _series(self, params):
     '''
     Handle the data URL.
     '''
@@ -99,9 +135,9 @@ class Web(WSGIServer):
     start = params.get('start', [''])[0]
     end = params.get('end', [''])[0]
     if start:
-      start = _parse_time(start)
+      start = parse_time(start)
     if end:
-      end = _parse_time(end)
+      end = parse_time(end)
 
     steps = int(params.get('steps',[0])[0])
     schema_name = params.get('schema',[None])[0]
@@ -141,9 +177,9 @@ class Web(WSGIServer):
           schema_name = macro.get( 'schema', schema_name )
           interval = macro.get( 'interval', interval )
           if start:
-            start = _parse_time(start)
+            start = parse_time(start)
           if end:
-            end = _parse_time(end)
+            end = parse_time(end)
 
       # If not a macro, or the macro has defined its own transform
       if func_name:
@@ -195,6 +231,9 @@ class Web(WSGIServer):
       else:
         transforms = [ t[1] for t in transforms ]
 
+      start = start or None
+      end = end or None
+
       data = schema.timeseries.series(stat, interval,
         condense=condense, transform=transforms,
         fetch=fetch, process_row=process_row, join_rows=join_rows,
@@ -226,5 +265,4 @@ class Web(WSGIServer):
           'datapoints' : data,
         } )
 
-    start_response('200 OK', [('content-type','application/json')] )
     return rval

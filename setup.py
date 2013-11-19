@@ -22,10 +22,10 @@ setup(
     license="LICENSE.txt",
     description='Carbon and Graphite replacement using Kairos for timeseries storage',
     long_description=open('README.rst').read(),
-    keywords=['python', 'redis', 'time series', 'statistics'],
-    scripts=['bin/karbon', 'bin/torus', 'bin/schema_debug'],
+    keywords=['python', 'redis', 'mongo', 'sql', 'mysql', 'sqlite', 'postgresql', 'cassandra', 'time', 'timeseries', 'gevent', 'graphite', 'carbon', 'rrd', 'statistics'],
+    scripts=['bin/karbon', 'bin/torus', 'bin/schema_debug', 'bin/migrate'],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: BSD License',
         "Intended Audience :: Developers",
         "Operating System :: POSIX",
@@ -34,7 +34,6 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries'
     ]
 )

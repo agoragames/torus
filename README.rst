@@ -189,8 +189,10 @@ Configuration
 
 The configuration for ``torus`` includes a definition for schemas, aggregates,
 custom functions that can be used in queries, and debugging settings. The 
-schema for ``torus`` is an extension of the ``kairos`` schema. The 
-configuration files can include 1 or more of the following: ::
+schema for ``torus`` is an extension of the ``kairos`` schema; each of the 
+key-value pairs in a schema definition will be passed to the timeseries
+`constructor <https://github.com/agoragames/kairos#constructor>`_.
+The configuration files can include 1 or more of the following: ::
 
     SCHEMAS = {
 
@@ -205,10 +207,16 @@ configuration files can include 1 or more of the following: ::
         # The database type, host and database identifier in which the 
         # timeseries is stored. If this is not a string, assumed to be a 
         # connection instance and will be used natively (e.g. for Redis
-        # unix domain sockets). The full redis and mongodb URI schemes are
-        # supported (requires redis 2.7.5).
+        # unix domain sockets). The full redis, mongo and SQLite URI schemes 
+        # are supported (requires redis 2.7.5).
         #
         # http://docs.mongodb.org/manual/reference/connection-string/
+        # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls
+        #
+        # Cassandra URLs are in the form "cassandra://host[:port]/[keyspace],
+        # where the keyspace defaults to "torus". The host settings
+        # [user,password,consistency_level] are supported.
+        # https://code.google.com/a/apache-extras.org/p/cassandra-dbapi2/source/browse/cql/connection.py
         #
         # host: 'redis://localhost'
         # host: 'redis://localhost/3'
@@ -216,6 +224,18 @@ configuration files can include 1 or more of the following: ::
         # host: 'mongodb://localhost:27018/timeseries'
         # host: 'mongodb://guest:host@localhost/authed_db'
         host: 'redis://localhost:6379/0'
+
+        # Optional, a dictionary of parameters to pass as keyword arguments to
+        # the database handle constructor.
+        #
+        #   Redis:      passed to `Redis.from_url()`
+        #   Mongo:      passed to `MongoClient()`
+        #   SQL:        passed to `sqlalchemy.create_engine()`
+        #   Cassandra:  passed to `cql.connect()`
+        #
+        # host_settings: {
+        #   connection_pool=redis.connection.ConnectionPool(max_connections=50)
+        # }
 
         # Patterns for any matching stats to store in this schema. If this is
         # a string, matches just one pattern, else if it's a list of strings,
@@ -369,6 +389,45 @@ Intervals
 Aggregates
 ----------
 
+Migration
+=========
+
+There will be times that you need to migrate data from one schema to another. 
+Torus ships with ``migrate`` to facilitate that. ::
+
+    usage: migrate [-h] --config CONFIG --source SOURCE --destination DESTINATION
+                   --interval INTERVAL [--start START] [--end END]
+                   [--concurrency CONCURRENCY] [--stat STAT] [--match MATCH]
+                   [--dry-run] [--verbose]
+
+    A tool to migrate data from one schema to another
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --config CONFIG       Configuration file to load. Can be called multiple
+                            times for multiple configuration files.
+      --source SOURCE       The name of the source schema [required]
+      --destination DESTINATION
+                            The name of the destination schema [required]
+      --interval INTERVAL   The name of the interval from which to read data
+                            [required]
+      --start START         Only copy stats occurring on or after this date. Same
+                            format as web parameter. [optional]
+      --end END             Only copy stats occurring on or before this date. Same
+                            format as web parameter. [optional]
+      --concurrency CONCURRENCY
+                            Set the concurrency on the schema target writing.
+                            Defaults to 10.
+      --stat STAT           The name of the stat to copy. Can be called multiple
+                            times for a list of stats. If not provided, all stats
+                            will be copied. [optional]
+      --match MATCH         Pattern match to migrate a subset of the data.
+                            [optional]
+      --dry-run             Print out status but do not save results in the
+                            destination schema. [optional]
+      --verbose             Print out even more information during the migration
+                            [optional]
+
 
 Installation
 ============
@@ -388,9 +447,13 @@ If installing from source:
 
     pip install -r requirements.pip
 
-Note that torus does not by default require 
-`hiredis <http://pypi.python.org/pypi/hiredis>`_ though it is
-strongly recommended.
+SQL
+---
+
+Torus installs SQLAlchemy to support SQL. To use your dialect of choice, you
+will likely have to install addition packages.  Refer to the
+`documentation <http://docs.sqlalchemy.org/en/latest/dialects/index.html>`_ 
+for more details.
 
 Tests
 =====
