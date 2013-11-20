@@ -1,0 +1,2 @@
+karbon: sh -c "PYTHONPATH=. bin/karbon --config examples/statsd.py"
+torus: sh -c "PYTHONPATH=. bin/torus --config examples/statsd.py"

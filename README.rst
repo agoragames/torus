@@ -26,6 +26,18 @@ to traditional disk stores such as RRD and Whisper, Torus adds:
 * consistent hashing of timestamps for ease in interleaving and interpolation
 * programmatic interface to data processing
 
+StatsD Quick Start
+==================
+
+A configuration file that tracks hourly, daily and monthly data in SQLite is
+available in ``examples/statsd.py``. The default will create a temp directory
+to store the databases and delete it when the applications close; change
+``STORAGE_DIR`` at the top of the file to set a permanent location.
+
+If you have installed torus in a virtual env, you can use ``foreman`` to start
+both ``karbon`` and ``torus``. If you're running torus out of the repository,
+then you can use ``foreman start -f Procfile.dev``
+
 Carbon Server
 =============
 
