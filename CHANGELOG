@@ -1,3 +1,10 @@
+0.6.1
+=====
+
+Fix the incorrect assignment operator in "/properties".
+
+Added quick start guide and supporting configurations.
+
 0.6.0
 =====
 
