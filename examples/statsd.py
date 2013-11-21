@@ -25,13 +25,29 @@ Assumes the following statsd configuration:
 STORAGE_DIR = globals().get('STORAGE_DIR',None)
 
 if not STORAGE_DIR:
-  import tempfile, atexit, shutil
-  d = tempfile.mkdtemp(suffix='torus')
+  import tempfile, os
+  d = "%s%storus.%s"%(tempfile.gettempdir(),os.sep,os.getlogin())
+  try: os.makedirs( d )
+  except OSError: pass
   STORAGE_DIR = d
 
-  @atexit.register
-  def cleanup():
-    shutil.rmtree( d )
+def timer_hash(f):
+  '''
+  Histogram hashing function for timers
+  '''
+  # anything less than 0 is an error
+  f = float(f)
+  if f < 0:
+    f = 0
+  # millisecond resolution below a second
+  elif f < 1:
+    f = '%0.3f'%(f)
+  # hundredth resolution below 5 seconds
+  elif f < 5:
+    f = '%0.2f'%(f)
+  else:
+    f = '%0.1f'%(f)
+  return f
 
 # Standard intervals for all schemas
 INTERVALS = {
@@ -57,34 +73,62 @@ INTERVALS = {
 }
 
 SCHEMAS = {
-
-  # TODO: support legacy and new namespacing
-  'statsd_counters' : {
+  
+  # Track the meta data about statsd operations
+  'statsd_metadata' : {
     'type': 'count',
-    'host' : 'sqlite:///%s/statsd_counters.db'%(STORAGE_DIR),
-    'match' : '^stats_counts\.',
+    'host' : 'sqlite:///%s/statsd_metadata.db'%(STORAGE_DIR),
+    'host_settings' : {
+      'isolation_level' : 'READ UNCOMMITTED'
+    },
+    'match' : [
+      '^statsd\.',
+      '^stats_counts\.statsd',
+      '^stats\.gauges\.statsd',
+      '^stats\.timers\.statsd'
+    ],
     'intervals' : INTERVALS,
   },
 
-  'statsd_timers' : {
+  # Track data that is not statsd metadata
+  # TODO: support legacy and new namespacing
+  'stats_counters' : {
+    'type': 'count',
+    'host' : 'sqlite:///%s/counters.db'%(STORAGE_DIR),
+    'host_settings' : {
+      'isolation_level' : 'READ UNCOMMITTED'
+    },
+    'match' : '^stats_counts\.(?!statsd\.)',
+    'intervals' : INTERVALS,
+  },
+
+  'stats_timers' : {
     'type': 'histogram',
-    'host' : 'sqlite:///%s/statsd_timers.db'%(STORAGE_DIR),
-    'match' : '^stats\.timers',
+    'host' : 'sqlite:///%s/timers.db'%(STORAGE_DIR),
+    'host_settings' : {
+      'isolation_level' : 'READ UNCOMMITTED'
+    },
+    'match' : '^stats\.timers\.(?!statsd\.)',
     'intervals' : INTERVALS,
+    'write_func' : timer_hash,
+    'read_func' : float,
   },
 
-  'statsd_gauges' : {
+  'stats_gauges' : {
     'type': 'gauge',
-    'host' : 'sqlite:///%s/statsd_guages.db'%(STORAGE_DIR),
-    'match' : '^stats\.gauges',
+    'host' : 'sqlite:///%s/gauges.db'%(STORAGE_DIR),
+    'host_settings' : {
+      'isolation_level' : 'READ UNCOMMITTED'
+    },
+    'match' : '^stats\.gauges\.(?!statsd\.)',
     'intervals' : INTERVALS,
   }
 
   # TODO: As of torus 0.6.0 with kairos 0.8.1, sets in SQL are not implemented.
-  #'statsd_sets' : {
+  #'stats_sets' : {
     #'type': 'set',
-    #'host' : 'sqlite:///%s/statsd_sets.db'%(STORAGE_DIR),
-    #'match' : '^stats\.sets',
+    #'host' : 'sqlite:///%s/sets.db'%(STORAGE_DIR),
+    #'match' : '^stats\.sets\.(?!statsd\.)',
     #'intervals' : INTERVALS,
   #}
 }
