@@ -31,8 +31,8 @@ StatsD Quick Start
 
 A configuration file that tracks hourly, daily and monthly data in SQLite is
 available in ``examples/statsd.py``. The default will create a temp directory
-to store the databases and delete it when the applications close; change
-``STORAGE_DIR`` at the top of the file to set a permanent location.
+for the current user to store the databases (e.g. ``/tmp/torus.user`` on Unix).
+Change ``STORAGE_DIR`` at the top of the file to set a permanent location.
 
 If you have installed torus in a virtual env, you can use ``foreman`` to start
 both ``karbon`` and ``torus``. If you're running torus out of the repository,
