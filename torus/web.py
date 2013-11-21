@@ -107,7 +107,7 @@ class Web(WSGIServer):
     for stat in params['stat']:
       rval.setdefault( stat, {} )
       for schema in self._configuration.schemas(stat):
-        rval[stat][schema.name] == schema.properties(stat)
+        rval[stat][schema.name] = schema.properties(stat)
 
     return rval
 
