@@ -478,6 +478,7 @@ Roadmap
 =======
 
 * Record metrics on karbon and torus usage
+* Add "dead letter" support for tracking stats that don't match any schema
 * Add stat submission endpoint to ``torus``
 * Add stat delete endpoint to ``torus``
 * Add tools for generating tasseo configurations (https://github.com/obfuscurity/tasseo)
