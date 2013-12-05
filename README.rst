@@ -481,6 +481,7 @@ Roadmap
 * Add "dead letter" support for tracking stats that don't match any schema
 * Add stat submission endpoint to ``torus``
 * Add stat delete endpoint to ``torus``
+* Command line tools for querying data and optionally plotting using `bashplotlib <http://www.yaksis.com/posts/bashplotlib.html>`_
 * Add tools for generating tasseo configurations (https://github.com/obfuscurity/tasseo)
 * Add ability to set transaction-commit intervals for Redis and SQLite backends
 * Investigate faster regular expression engines. `pyre2 <https://github.com/facebook/pyre2>`_ is currently in the running.
