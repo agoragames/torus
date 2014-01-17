@@ -5,9 +5,17 @@ https://github.com/agoragames/torus/blob/master/LICENSE.txt
 '''
 
 import socket
+import time
+import re
 
 import gevent
 from gevent.server import StreamServer
+
+# Fixes issue where we need to capture a stat with spaces in the name.
+# Includes support for floating point timestamps even though graphite/statsd
+# don't seem to make use of that.
+# https://github.com/agoragames/torus/issues/10
+LINE_MATCH = re.compile("^([^ \t]+)[ \t]+(.+[\S])[ \t]+([\d]+(?:\.[\d]+)*)$")
 
 class KarbonTcp(StreamServer):
   '''
@@ -56,7 +64,6 @@ class KarbonTcp(StreamServer):
     Process all the datapoints that we read.
     '''
     try:
-      import time
       num = len(lines.split('\n'))
       t0 = time.time()
       for line in lines.split('\n'):
@@ -65,11 +72,13 @@ class KarbonTcp(StreamServer):
         if self._configuration.debug>1:
           print 'RECV', line
         try:
-          stat,val,timestamp = line.split()
+          match = LINE_MATCH.match( line.strip() )
+          if match:
+            stat,val,timestamp = match.groups()
         except ValueError:
           # TODO: Store like stasd failed lines
           continue
-        timestamp = long(timestamp)
+        timestamp = long(float(timestamp))
 
         self._configuration.process(stat,val,timestamp)
       t1 = time.time()
