@@ -2,7 +2,7 @@
 Torus
 =====
 
-:Version: 0.6.1
+:Version: 0.6.2
 :Download: http://pypi.python.org/pypi/torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
@@ -479,7 +479,6 @@ Roadmap
 
 * Record metrics on karbon and torus usage
 * Add "dead letter" support for tracking stats that don't match any schema
-* Add stat submission endpoint to ``torus``
 * Add stat delete endpoint to ``torus``
 * Command line tools for querying data and optionally plotting using `bashplotlib <http://www.yaksis.com/posts/bashplotlib.html>`_
 * Add tools for generating tasseo configurations (https://github.com/obfuscurity/tasseo)

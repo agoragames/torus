@@ -1,3 +1,14 @@
+0.6.2
+=====
+
+On configuration reload, reset the debug state. Fixes 
+https://github.com/agoragames/torus/issues/12
+
+Fixed matching against stat names with spaces in the name. Fixes
+https://github.com/agoragames/torus/issues/10
+
+Added "/insert" URI for inserting data with HTTP.
+
 0.6.1
 =====
 
