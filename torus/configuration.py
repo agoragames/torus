@@ -38,6 +38,7 @@ class Configuration(object):
     '''
     Reload all of the configurations.
     '''
+    self._debug = 0
     self._schemas = []
     self._aggregates = Aggregates()
     self._transforms = {}
