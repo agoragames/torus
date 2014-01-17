@@ -59,11 +59,16 @@ class Web(WSGIServer):
       elif cmd == 'properties':
         result = self._properties(params)
 
+      elif cmd == 'insert':
+        result = self._insert(params)
+
       else:
         raise HttpNotFound()
 
       start_response('200 OK', [('content-type','application/json')] )
-      return [ ujson.dumps(result, double_precision=4) ]
+      if result is not None:
+        return [ ujson.dumps(result, double_precision=4) ]
+      return []
 
     except HttpError as e:
       start_response( '%s %s'%(e.code, e.msg), 
@@ -110,6 +115,16 @@ class Web(WSGIServer):
         rval[stat][schema.name] = schema.properties(stat)
 
     return rval
+
+  def _insert(self, params):
+    '''
+    Insert a data point
+    '''
+    stat = params['stat'][0]
+    value = params['value'][0]
+    timestamp = long(float( params.get('timestamp',[time.time()])[0] ))
+
+    self._configuration.process(stat, value, timestamp)
 
   def _series(self, params):
     '''
