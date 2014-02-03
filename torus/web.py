@@ -44,6 +44,9 @@ class Web(WSGIServer):
     super(Web,self).__init__( (self.host,int(self.port)), self.handle_request, log=None )
 
   def handle_request(self, env, start_response):
+    if self._configuration.debug:
+      print 'QUERY', env['PATH_INFO'], env['QUERY_STRING']
+
     cmd = env['PATH_INFO'][1:]
     if cmd.endswith('/'):
       cmd = cmd[:-1]
