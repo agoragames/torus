@@ -44,9 +44,24 @@ class Web(WSGIServer):
     super(Web,self).__init__( (self.host,int(self.port)), self.handle_request, log=None )
 
   def handle_request(self, env, start_response):
-    if self._configuration.debug:
-      print 'QUERY', env['PATH_INFO'], env['QUERY_STRING']
+    if not self._configuration.debug:
+      return self._process_request(env, start_response)
 
+    t0 = time.time()
+    env['_TORUS_RESPONSE_CODE'] = '000'  # fun with closures
+
+    def _start_response(status, headers):
+      start_response(status, headers)
+      env['_TORUS_RESPONSE_CODE'] = status.split()[0]
+
+    try:
+      return self._process_request(env, _start_response)
+    finally:
+      t1 = time.time()
+      print "%s %.03f %s?%s"%( env['_TORUS_RESPONSE_CODE'], t1-t0, env['PATH_INFO'], env['QUERY_STRING'])
+    return []
+
+  def _process_request(self, env, start_response):
     cmd = env['PATH_INFO'][1:]
     if cmd.endswith('/'):
       cmd = cmd[:-1]

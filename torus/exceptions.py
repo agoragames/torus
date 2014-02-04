@@ -8,6 +8,6 @@ class HttpError(Exception):
   msg = "Internal Server Error"
   code = 500
 
-class HttpNotFound(Exception):
+class HttpNotFound(HttpError):
   msg = "Not Found"
   code = 404
