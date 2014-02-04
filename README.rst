@@ -2,7 +2,7 @@
 Torus
 =====
 
-:Version: 0.6.2
+:Version: 0.6.3
 :Download: http://pypi.python.org/pypi/torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
@@ -463,7 +463,7 @@ SQL
 ---
 
 Torus installs SQLAlchemy to support SQL. To use your dialect of choice, you
-will likely have to install addition packages.  Refer to the
+will likely have to install additional packages.  Refer to the
 `documentation <http://docs.sqlalchemy.org/en/latest/dialects/index.html>`_ 
 for more details.
 
