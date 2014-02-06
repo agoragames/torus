@@ -21,9 +21,11 @@ class KarbonTcpTest(Chai):
     expect( self.karbon._configuration.process ).args( 'stat', 'foo', 1234 )
     expect( self.karbon._configuration.process ).args( 'stat', 'foo.bar', 1234 )
     expect( self.karbon._configuration.process ).args( 'stat', 'foo bar', 1234 )
+    expect( self.karbon._configuration.process ).args( 'stats.statsd.bad_lines_seen', '0', 1391710252 )
 
     self.karbon._process_lines( '''
       stat\tfoo\t1234
       stat    foo.bar 1234
       stat  foo bar        1234.5678
+      stats.statsd.bad_lines_seen 0 1391710252
     ''')

@@ -15,7 +15,7 @@ from gevent.server import StreamServer
 # Includes support for floating point timestamps even though graphite/statsd
 # don't seem to make use of that.
 # https://github.com/agoragames/torus/issues/10
-LINE_MATCH = re.compile("^([^ \t]+)[ \t]+(.+[\S])[ \t]+([\d]+(?:\.[\d]+)*)$")
+LINE_MATCH = re.compile("^([^ \t]+)[ \t]+(.*[\S])[ \t]+([\d]+(?:\.[\d]+)*)$")
 
 class KarbonTcp(StreamServer):
   '''
@@ -75,6 +75,9 @@ class KarbonTcp(StreamServer):
           match = LINE_MATCH.match( line.strip() )
           if match:
             stat,val,timestamp = match.groups()
+          elif self._configuration.debug>1:
+            print 'BAD MATCH', line.strip()
+            continue
         except ValueError:
           # TODO: Store like stasd failed lines
           continue
