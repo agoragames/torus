@@ -36,7 +36,9 @@ Change ``STORAGE_DIR`` at the top of the file to set a permanent location.
 
 If you have installed torus in a virtual env, you can use ``foreman`` to start
 both ``karbon`` and ``torus``. If you're running torus out of the repository,
-then you can use ``foreman start -f Procfile.dev``
+then you can use ``foreman start -f Procfile.dev``.
+
+The example configuration includes support for performance testing (see below).
 
 Carbon Server
 =============
@@ -219,33 +221,15 @@ The configuration files can include 1 or more of the following: ::
         # The database type, host and database identifier in which the 
         # timeseries is stored. If this is not a string, assumed to be a 
         # connection instance and will be used natively (e.g. for Redis
-        # unix domain sockets). The full redis, mongo and SQLite URI schemes 
-        # are supported (requires redis 2.7.5).
-        #
-        # http://docs.mongodb.org/manual/reference/connection-string/
-        # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls
-        #
-        # Cassandra URLs are in the form "cassandra://host[:port]/[keyspace],
-        # where the keyspace defaults to "torus". The host settings
-        # [user,password,consistency_level] are supported.
-        # https://code.google.com/a/apache-extras.org/p/cassandra-dbapi2/source/browse/cql/connection.py
-        #
-        # host: 'redis://localhost'
-        # host: 'redis://localhost/3'
-        # host: 'mongodb://localhost'
-        # host: 'mongodb://localhost:27018/timeseries'
-        # host: 'mongodb://guest:host@localhost/authed_db'
+        # unix domain sockets). If a string, is passed to kairos for parsing;
+        # see kairos documentation for details https://github.com/agoragames/kairos
         host: 'redis://localhost:6379/0'
 
         # Optional, a dictionary of parameters to pass as keyword arguments to
-        # the database handle constructor.
+        # the database handle constructor when using URLs. See kairos 
+        # documentation for details.
         #
-        #   Redis:      passed to `Redis.from_url()`
-        #   Mongo:      passed to `MongoClient()`
-        #   SQL:        passed to `sqlalchemy.create_engine()`
-        #   Cassandra:  passed to `cql.connect()`
-        #
-        # host_settings: {
+        # client_config: {
         #   connection_pool=redis.connection.ConnectionPool(max_connections=50)
         # }
 
@@ -312,7 +296,11 @@ The configuration files can include 1 or more of the following: ::
             # value as "step". Can also be one of the supported Gregorian intevals.
             resolution: 60,
             }
-          }
+          },
+
+        # Optional, can be used for load testing. Must be a function which can
+        # return the tuple (stat_name, value).
+        generator: lambda: ('application.hits.%d'%(random.choice([200,404,500])), 1)
         }
       },
       ...
@@ -386,20 +374,25 @@ To use the debugging flag, you can change the value in one of the configuration
 files loaded by ``karbon``, and then signal the process to reload with the 
 command ``kill -SIGHUP `pidof karbon```.
 
+Performance Testing
+-------------------
 
-Series Types
-------------
+To test your schema for performance and regressions, torus includes 
+``schema_test``. The tool looks for ``generator`` definitions in schemas,
+and continually calls them to emit data points that are processed through
+all the schemas and aggregates. Prints out some basic statistics. ::
 
-TODO: discuss different series types and their features.
+    usage: schema_test [-h] [--config CONFIG] [--clear] [--duration DURATION]
 
-Hosts
------
+    Tool for performance testing of schemas
 
-Intervals
----------
-
-Aggregates
-----------
+    optional arguments:
+      -h, --help           show this help message and exit
+      --config CONFIG      Configuration file to load. Can be called multiple
+                           times for multiple configuration files.
+      --clear              If true, clear all data before running the test.
+                           Defaults to false.
+      --duration DURATION  Duration of the test. Defaults to 60 seconds.
 
 Migration
 =========

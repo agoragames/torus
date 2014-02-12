@@ -20,6 +20,18 @@ Assumes the following statsd configuration:
 
 '''
 
+import random
+APP_KEYS = []
+for x in range(40):
+  APP_KEYS.append( ''.join( [random.choice('1234567890abcdef') for x in range(24)] ) )
+FEATURES = ['account','billing','order','item','settings']
+
+STATSD_KEYS = [
+  'stats_counts.statsd',
+  'stats.gauges.statsd',
+  'stats.timers.statsd'
+]
+
 # Change this for your own installation. Check on globals in case this is a
 # temp dir and we reload the configuration
 STORAGE_DIR = globals().get('STORAGE_DIR',None)
@@ -78,7 +90,7 @@ SCHEMAS = {
   'statsd_metadata' : {
     'type': 'count',
     'host' : 'sqlite:///%s/statsd_metadata.db'%(STORAGE_DIR),
-    'host_settings' : {
+    'client_config' : {
       'isolation_level' : 'READ UNCOMMITTED'
     },
     'match' : [
@@ -88,6 +100,7 @@ SCHEMAS = {
       '^stats\.timers\.statsd'
     ],
     'intervals' : INTERVALS,
+    'generator': lambda: (random.choice(STATSD_KEYS), random.randint(1,10))
   },
 
   # Track data that is not statsd metadata
@@ -95,33 +108,36 @@ SCHEMAS = {
   'stats_counters' : {
     'type': 'count',
     'host' : 'sqlite:///%s/counters.db'%(STORAGE_DIR),
-    'host_settings' : {
+    'client_config' : {
       'isolation_level' : 'READ UNCOMMITTED'
     },
     'match' : '^stats_counts\.(?!statsd\.)',
     'intervals' : INTERVALS,
+    'generator': lambda: ('stats_counts.'+random.choice(APP_KEYS)+'.'+random.choice(FEATURES), random.randint(1,10))
   },
 
   'stats_timers' : {
     'type': 'histogram',
     'host' : 'sqlite:///%s/timers.db'%(STORAGE_DIR),
-    'host_settings' : {
+    'client_config' : {
       'isolation_level' : 'READ UNCOMMITTED'
     },
     'match' : '^stats\.timers\.(?!statsd\.)',
     'intervals' : INTERVALS,
     'write_func' : timer_hash,
     'read_func' : float,
+    'generator': lambda: ('stats.timers.'+random.choice(APP_KEYS)+'.'+random.choice(FEATURES), random.randint(1,10))
   },
 
   'stats_gauges' : {
     'type': 'gauge',
     'host' : 'sqlite:///%s/gauges.db'%(STORAGE_DIR),
-    'host_settings' : {
+    'client_config' : {
       'isolation_level' : 'READ UNCOMMITTED'
     },
     'match' : '^stats\.gauges\.(?!statsd\.)',
     'intervals' : INTERVALS,
+    'generator': lambda: ('stats.gauges.'+random.choice(APP_KEYS)+'.'+random.choice(FEATURES), random.randint(1,10))
   }
 
   # TODO: As of torus 0.6.0 with kairos 0.8.1, sets in SQL are not implemented.
@@ -132,3 +148,9 @@ SCHEMAS = {
     #'intervals' : INTERVALS,
   #}
 }
+
+AGGREGATES = [
+  ('stats_counts.<category>', 'stats_counts.<category>.*'),
+  ('stats.timers.<category>', 'stats.timers.<category>.*'),
+  ('stats.gauges.<category>', 'stats.gauges.<category>.*'),
+]
