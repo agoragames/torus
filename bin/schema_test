@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+'''
+Copyright (c) 2013, Agora Games, LLC All rights reserved.
+
+https://github.com/agoragames/torus/blob/master/LICENSE.txt
+'''
+import sys, os, argparse, re, signal, time
+
+import gevent, gevent.monkey
+gevent.monkey.patch_all()
+
+from torus.configuration import Configuration
+
+parser = argparse.ArgumentParser(
+  description='Tool for performance testing of schemas')
+parser.add_argument('--config',
+  type=str, action='append', default=[],
+  help='Configuration file to load. Can be called multiple times for multiple configuration files.')
+parser.add_argument('--clear',
+  action='store_true', default=False,
+  help='If true, clear all data before running the test. Defaults to false.')
+parser.add_argument('--duration',
+  type=int, default=60,
+  help='Duration of the test. Defaults to 60 seconds.')
+
+args = parser.parse_args()
+
+c = Configuration()
+for fname in args.config:
+  c.load( fname )
+
+if args.clear:
+  for schema in c.schemas():
+    schema.timeseries.delete_all()
+
+t0 = time.time()
+emitted = 0
+try:
+  while time.time() < (t0 + args.duration):
+    for schema in c.schemas():
+      emit = schema.generate()
+      if emit:
+        c.process( *emit )
+        emitted += 1
+except KeyboardInterrupt:
+  pass
+total_time = time.time() - t0
+total_inserts = sum([s.count for s in c.schemas()])
+
+print "Emitted %s, inserted %s in %.04f (%.04f/sec)"%(emitted, total_inserts, total_time, total_inserts/total_time)
+
+print '\nSchema'.ljust(60), 'Insert Count'.rjust(20)
+print '-'*80
+for schema in c.schemas():
+  print schema.name.ljust(60), str(schema.count).rjust(19)
+
+print '\nAggregate'.ljust(60), 'Emits'.rjust(20)
+print '-'*80
+for aggregate in c.aggregates():
+  print aggregate.source.ljust(60), str(aggregate.count).rjust(19)

@@ -23,7 +23,7 @@ setup(
     description='Carbon and Graphite replacement using Kairos for timeseries storage',
     long_description=open('README.rst').read(),
     keywords=['python', 'redis', 'mongo', 'sql', 'mysql', 'sqlite', 'postgresql', 'cassandra', 'time', 'timeseries', 'gevent', 'graphite', 'carbon', 'rrd', 'statistics'],
-    scripts=['bin/karbon', 'bin/torus', 'bin/schema_debug', 'bin/migrate'],
+    scripts=['bin/karbon', 'bin/torus', 'bin/schema_debug', 'bin/migrate', 'bin/schema_test'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: BSD License',

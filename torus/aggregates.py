@@ -27,6 +27,13 @@ class Aggregates(object):
     for target,source in rules:
       self._rules.append( Aggregate(source,target) )
 
+  def __iter__(self):
+    '''
+    Return an iterator on the rules.
+    '''
+    for rule in self._rules:
+      yield rule
+
   def match(self, stat):
     '''
     Return the name of any aggregates which should be generated from the stat
@@ -39,6 +46,7 @@ class Aggregate(object):
   '''
 
   def __init__(self, source, target):
+    self._count = 0
     self._source = source
     self._target = target
     source = source.split('.')
@@ -64,6 +72,14 @@ class Aggregate(object):
         target_format.append( target_comp )
     self._target_format = '.'.join( target_format )
 
+  @property
+  def source(self):
+    return self._source
+
+  @property
+  def count(self):
+    return self._count
+
   def __repr__(self):
     return self._source
 
@@ -73,5 +89,6 @@ class Aggregate(object):
     '''
     res = self._pattern.match(stat)
     if res:
+      self._count += 1
       return self._target_format%res.groupdict()
     return None

@@ -12,6 +12,7 @@ from pymongo import MongoClient
 from kairos import Timeseries
 from sqlalchemy import create_engine
 import cql
+import time
 
 def long_or_float(v):
   try:
@@ -25,10 +26,11 @@ class Schema(object):
   '''
 
   def __init__(self, name, config):
+    self._count = 0
     self._name = name
     self._host = config.pop('host', 'sqlite:///:memory:')
-    self._host_settings = config.pop('host_settings', {})
     self._rolling = config.pop('rolling', 0)
+    self._generator = config.pop('generator',None)
 
     config.setdefault('type', 'count')
     config.setdefault('write_func', long_or_float)
@@ -49,10 +51,8 @@ class Schema(object):
       self._patterns = re.compile(self._patterns)
       self.match = self._match_single
 
-    self._client = self._init_client()
-
     self.config = config
-    self.timeseries = Timeseries(self._client, **config)
+    self.timeseries = Timeseries(self._host, **config)
 
     # Bind some of the timeseries methods to this for convenience
     self.list = self.timeseries.list
@@ -67,6 +67,16 @@ class Schema(object):
   def host(self):
     return self._host
 
+  @property
+  def count(self):
+    return self._count
+
+  def generate(self):
+    if self._generator:
+      stat,value = self._generator()
+      return stat,value,time.time()
+    return None
+
   def store(self, stat, val, timestamp=None):
     '''
     Store a value in this schema.
@@ -76,6 +86,7 @@ class Schema(object):
         stat,val = self._transform(stat,val)
         if stat is None:
           return False
+      self._count += 1
       self.timeseries.insert(stat, val, timestamp, intervals=self._rolling)
       return True
     return False
@@ -106,48 +117,3 @@ class Schema(object):
       elif pattern.search(stat):
         return True
     return False
-
-  def _init_client(self):
-    '''
-    Parse the host URL and initialize a client connection.
-    '''
-    if not isinstance(self._host, (str,unicode)):
-      return self._host
-
-    location = urlparse(self._host)
-
-    if location.scheme == 'redis':
-      return Redis.from_url( self._host, **self._host_settings )
-
-    elif location.scheme == 'mongodb':
-      # Use the whole host string so that mongo driver can do its thing
-      client = MongoClient( self._host, **self._host_settings )
-      
-      # Stupid urlparse has a "does this scheme use queries" registrar,
-      # so copy that work here. Then pull out the optional database name.
-      path = location.path
-      if '?' in path:
-        path = path.split('?',1)[0]
-      path = re.search('[/]*([\w]*)', path).groups()[0] or 'torus'
-
-      return client[ path ]
-
-    elif 'sql' in location.scheme:
-      # TODO: some way for pool size to be configured
-      return create_engine( self._host, **self._host_settings )
-
-    elif location.scheme == 'cassandra':
-      host = location.netloc or "localhost:9160"
-      if re.search(":[0-9]+$", host):
-        ip,port = host.split(':')
-      else:
-        ip = host
-        port = 9160
-
-      keyspace = location.path[1:] or 'torus'
-      if '?' in keyspace:
-        keyspace,params = keyspace.split('?')
-
-      return cql.connect(ip, int(port), keyspace, cql_version='3.0.0', **self._host_settings)
-
-    raise ValueError("unsupported scheme", location.scheme)

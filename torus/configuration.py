@@ -75,6 +75,12 @@ class Configuration(object):
       return self._schemas[:]
     return [s for s in self._schemas if s.match(stat)]
 
+  def aggregates(self):
+    '''
+    Return the aggregates
+    '''
+    return list(self._aggregates)
+
   def process(self, stat, val, timestamp=None, seen=None):
     '''
     Process a stat through this configuration.

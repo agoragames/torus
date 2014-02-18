@@ -1,12 +1,21 @@
+performance-tools
+=================
+
+Added `schema_test` tool for performance testing.
+
+Uses kairos 0.9.2 with URL support.
+
+Changed "host_settings" to "client_config" as they're passed directly to kairos.
+
 0.6.4
 =====
 
-Fix for single character value regression introduced in 0.6.2 fix for issue 10
+Fix for single character value regression introduced in 0.6.2 fix for issue 10.
 
 0.6.3
 =====
 
-If debugging, print torus web requests
+If debugging, print torus web requests.
 
 0.6.2
 =====
