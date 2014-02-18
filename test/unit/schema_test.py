@@ -59,28 +59,6 @@ class SchemaTest(Chai):
     assert_equals( 0.2, var('rfunc').value('0.2') )
     assert_equals( '0.333', var('wfunc').value(0.3333333333) )
 
-  def test_init_cassandra(self):
-    mock( schema, 'cql' )
-    expect( schema.cql.connect ).args( 'localhost', 9160, 'torus', cql_version='3.0.0' ).times(3)
-    expect( schema.cql.connect ).args( 'ip.com', 3678, 'torus', cql_version='3.0.0' )
-    expect( schema.cql.connect ).args( 'ip.com', 3678, 'keymaster', cql_version='3.0.0' )
-    expect( schema.cql.connect ).args( 'ip.com', 4321, 'gatekeeper', cql_version='3.0.0' )
-    expect( schema.cql.connect ).args( 'ip.com', 4321, 'gatekeeper', cql_version='3.0.0', 
-      user='name', password='pass', consistency_level='QUORUM' )
-    expect( schema.Timeseries ).returns( mock() )
-
-    s = Schema('name', {'host':'cassandra://'} )
-    s = Schema('name', {'host':'cassandra://localhost'} )
-    s = Schema('name', {'host':'cassandra://localhost:9160'} )
-    s = Schema('name', {'host':'cassandra://ip.com:3678'} )
-    s = Schema('name', {'host':'cassandra://ip.com:3678/keymaster'} )
-    
-    s = Schema('name', {'host':'cassandra://ip.com:4321/gatekeeper?foo=bar'} )
-    s = Schema('name', {
-      'host':'cassandra://ip.com:4321/gatekeeper?foo=bar',
-      'host_settings':{'user':'name', 'password':'pass', 'consistency_level':'QUORUM'}
-    } )
-
   def test_match_single(self):
     config = {
       'host' : 'redis://localhost:6379/4',
