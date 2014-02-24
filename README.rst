@@ -7,9 +7,16 @@ Torus
 :Source: https://github.com/agoragames/torus
 :Keywords: python, redis, time, rrd, gevent, carbon, graphite, whisper, statsd, kairos
 
-A service implementing the Carbon protocol to store time series data using
-`kairos <https://github.com/agoragames/kairos>`_ and an HTTP server to query 
-and analyze the data.
+A suite of tools designed to replace `Graphite`__ and expand on its capabilities. 
+Uses `kairos <https://github.com/agoragames/kairos>`_ to support storing and 
+reading data from many different types of data stores, and focuses on providing
+programmatic tools for storing, retrieving and processing of streaming 
+timeseries data.
+
+__ http://graphite.readthedocs.org
+
+.. contents::
+       :local:
 
 Motivation
 ==========
@@ -201,136 +208,183 @@ format.
 Configuration
 =============
 
+All torus applications load one or more configurations, where a configuration
+is a python module that is loaded into the application. Torus looks for the
+constants documented below, but as the configuration is a full python module,
+extensions, plugins and additional runtime configuration can be included. For
+example, one can connect torus' use of the standard python 
+`logger <http://docs.python.org/2.7/library/logging.html#module-logging>`_
+to syslog, logstash or one of many error reporting tools, such as Sentry.
+For ``torus``, log messages prioritize the header ``X-Forwarded-For`` and 
+then use the remote IP address if that's not available. For this reason and 
+general security, you should always use a proxy server in front of ``torus``.
+
 The configuration for ``torus`` includes a definition for schemas, aggregates,
 custom functions that can be used in queries, and debugging settings. The 
 schema for ``torus`` is an extension of the ``kairos`` schema; each of the 
 key-value pairs in a schema definition will be passed to the timeseries
 `constructor <https://github.com/agoragames/kairos#constructor>`_.
-The configuration files can include 1 or more of the following: ::
+The configuration files can include 1 or more of the following.
+
+SCHEMAS
+-------
+
+A dictionary of unique names to the configuration for capturing and storing 
+the statistics which match the regular expressions. A schema definition
+supports the following fields, many of which are passed directly to
+`kairos <https://github.com/agoragames/kairos>`_.
+
+* type
+
+    Required, defines the type of the timeseries. One of 
+    ``[series, histogram, count, set, gauge]``, depending on what the backend
+    supports.
+
+* host
+
+    Required, the URL connection string or an instance of a supported
+    connection type. See 
+    `Storage Engines`__ 
+
+__ https://github.com/agoragames/kairos#storage-engines
+
+* client_config
+
+    Optional, is a dictionary of parameters to use in the connection 
+    constructor associated with the ``host`` URL. See `Storage Engines`__
+
+__ https://github.com/agoragames/kairos#storage-engines
+
+* match
+
+    A string, or a list of strings, which are regular expressions that define
+    the stat names which should be stored and queried in this schema. In the
+    case where a ``transform`` is defined, it is likely the one or more 
+    expressions will define the input stats, and another expression will define
+    the stat which can be queried. See GitHub 
+    `issue <https://github.com/agoragames/torus/issues/1>`_.
+
+* rolling
+
+    Optional, defines how many intervals before (negative) or after (positive) 
+    that a copy of data should be written to whenever data is inserted. The
+    extra storage size offsets much faster calculation of aggregates over
+    pre-determined date range. For example, when storing daily values, a value
+    of ``-30`` will store a value as if it occurred any time in the last 30 days.
+
+* prefix
+
+    Optional, is used to scope data in redis data stores. If supplied and it
+    doesn't end with ":", it will be automatically appended.
+
+* transform
+        
+    Optional, allows one to replace the stat name and value with another.
+    Takes two arguments and must return a tuple of two items (statistic,
+    value). If the statistic is None, will skip writing the statistic.
+    The value will be a string on input, and on output must be acceptable
+    to any write_func defined.
+    Example: ``transform: lambda s,v: (None,None) if 0>long_or_float(v)>3.14 else (s,v)``
+
+* read_func
+
+    Optional, is a function applied to all values read back from the
+    database. Without it, values will be strings. Must accept a string
+    value and can return anything. Defaults to ``long_or_float``, which
+    tries to cast to a long and failing that, cast to a float.
+    ``long_or_float`` is available for all schemas to use.
+
+* write_func
+
+    Optional, is a function applied to all values when writing. Can be
+    used for histogram resolution, converting an object into an id, etc.
+    Must accept whatever can be inserted into a timeseries and return an
+    object which can be cast to a string.  Defaults to ``long_or_float``,
+    which tries to cast to a long and failing that, cast to a float.
+    Example: ``write_func: lambda v: '%0.3f'%(v)``
+
+* intervals
+
+    Required, defines the `intervals <https://github.com/agoragames/kairos#constructor>`_
+    in which data should be stored.
+
+* generator
+
+    Optional, defines a function which can be used to generate load tests. Must
+    return a tuple in the form ``(stat_name, value)``.
+    Example: ``lambda: ('application.hits.%d'%(random.choice([200,404,500])), 1)``
+
+Example: ::
 
     SCHEMAS = {
 
-      # The name of the time series
-      unique_counts : {
+      'response_times' : {
+        'type': 'histogram'
+        'host': 'redis://localhost:6379/0'
+        'match': [ 'application.*.response_time', 'application.response_time' ]
+        'read_func': float
+        'write_func': lambda v: '%0.3f'%(v)
 
-        # A dictionary similar to kairos with a few additions
-
-        # One of (series, histogram, count, gauge). Optional, defaults to "count".
-        type: 'histogram'
-
-        # The database type, host and database identifier in which the 
-        # timeseries is stored. If this is not a string, assumed to be a 
-        # connection instance and will be used natively (e.g. for Redis
-        # unix domain sockets). If a string, is passed to kairos for parsing;
-        # see kairos documentation for details https://github.com/agoragames/kairos
-        host: 'redis://localhost:6379/0'
-
-        # Optional, a dictionary of parameters to pass as keyword arguments to
-        # the database handle constructor when using URLs. See kairos 
-        # documentation for details.
-        #
-        # client_config: {
-        #   connection_pool=redis.connection.ConnectionPool(max_connections=50)
-        # }
-
-        # Patterns for any matching stats to store in this schema. If this is
-        # a string, matches just one pattern, else if it's a list of strings,
-        # matches any of the patterns. The pattern(s) will be used as-is in the
-        # python regex library with no flags.
-        match: [ 'application.hits.*',  ]
-
-        # Defines how many intervals before (negative) or after (positive) that
-        # a copy of data should be written to whenever data is inserted. The
-        # extra storage size offsets much faster calculation of aggregates over
-        # pre-determined date range.
-        #
-        # Example: for a schema storing daily values, will store a value as if
-        # it occurred any time in the last 30 days.
-        # rolling: -30
-
-        # Optional, is a prefix for all keys in this histogram. If supplied
-        # and it doesn't end with ":", it will be automatically appended.
-        # prefix: 'application'
-
-        # Optional, allows one to replace the stat name and value with another.
-        # Takes two arguments and must return a tuple of two items (statistic,
-        # value). If the statistic is None, will skip writing the statistic.
-        # The value will be a string on input, and on output must be acceptable
-        # to any write_func defined.
-        # transform: lambda s,v: (None,None) if 0>long_or_float(v)>3.14 else (s,v)
-
-        # Optional, is a function applied to all values read back from the
-        # database. Without it, values will be strings. Must accept a string
-        # value and can return anything. Defaults to long_or_float, which
-        # tries to cast to a long and failing that, cast to a float.
-        # long_or_float is available for all schemas to use.
-        read_func: float
-
-        # Optional, is a function applied to all values when writing. Can be
-        # used for histogram resolution, converting an object into an id, etc.
-        # Must accept whatever can be inserted into a timeseries and return an
-        # object which can be cast to a string.  Defaults to long_or_float,
-        # which tries to cast to a long and failing that, cast to a float.
-        write_func: lambda v: '%0.3f'%(v)
-
-        # Required, a dictionary of interval configurations in the form of:
-        intervals: {
-          # interval name, used in redis keys and should conform to best practices
-          # and not include ":" or "."
-          minute: {
-
-            # Required. The number of seconds that the interval will cover,
-            # or one of the Gregorian intervals "daily", "weekly", "monthly"
-            # or "yearly"
-            step: 60,
-
-            # Optional. The maximum number of intervals to maintain. If supplied,
-            # will use redis expiration to delete old intervals, else intervals
-            # exist in perpetuity.
-            steps: 240,
-
-            # Optional. Defines the resolution of the data, i.e. the number of
-            # seconds in which data is assumed to have occurred "at the same time".
-            # So if you're tracking a month long time series, you may only need
-            # resolution down to the day, or resolution=86400. Defaults to same
-            # value as "step". Can also be one of the supported Gregorian intevals.
-            resolution: 60,
-            }
-          },
-
-        # Optional, can be used for load testing. Must be a function which can
-        # return the tuple (stat_name, value).
-        generator: lambda: ('application.hits.%d'%(random.choice([200,404,500])), 1)
-        }
-      },
-      ...
+        'intervals': {
+          'minute': {
+            'step': 60,
+            'steps': 240,
+           },
+          'daily' : {
+            'step': 'daily',
+            'steps': 30
+          }
+        },
+      }
     }
 
-    # Similar to Carbon aggregator but without the time buffer. Matching stats
-    # will be processed through any matching schemas.  Is a list of tuples to
-    # support rolling up any number of dissimilar stats into a single one. At
-    # this time key names must be in the character set [a-zA-Z0-9_-]
+
+AGGREGATES
+----------
+
+Similar to Carbon aggregator but without the time buffer. Matching stats
+will be processed through any matching schemas.  Is a list of tuples to
+support rolling up any number of dissimilar stats into a single one. At
+this time key names must be in the character set ``[a-zA-Z0-9_-]``. Each aggregate
+is defined as a tuple in the form of ``(rollup_stat, source_stat)``. Captures
+can be defined in the form of ``<capture>`` and used in each rollup.
+
+Example: ::
+    
     AGGREGATES = [
-      ('application.rollup', 'application.count.*'),
-      ('application.result.<code>', 'application.http.status.<code>'),
+      ('application.response_time', 'application.*.response_time'),
+      ('application.<status_code>', 'application.*.status.<status_code>'),
     ]
 
-    # A named map of functions which can be used in requests to torus
+
+TRANSFORMS
+----------
+
+A named mapping of functions which can be used in queries. 
+
+Example: ::
+
     TRANSFORMS = {
       # Returns the number of elements
       'size' : lambda row: len(row)
     }
 
-    # A named map of configuration options so that "foo(stat)" will result in
-    # a fixed set of options passed to kairos. This is especially useful for
-    # using the customized read feature of kairos. This example assumes a 
-    # histogram stored in redis. A more complicated macro might use server-side
-    # scripting. All custom read functions exposed in kairos can be defined here.
-    # All fields of the query string, other than 'stat', can be set in the
-    # macro definition and will override those query parameters if they're
-    # provided. To use a transform in a macro, set the 'transform' field to
-    # either a string or a callable. Macros can make use of transforms defined
-    # in TRANSFORMS.
+MACROS
+------
+
+A named map of configuration options so that "foo(stat)" will result in
+a fixed set of options passed to kairos. This is especially useful for
+using the customized read feature of kairos. This example assumes a 
+histogram stored in redis. A more complicated macro might use server-side
+scripting. All custom read functions exposed in kairos can be defined here.
+All fields of the query string, other than 'stat', can be set in the
+macro definition and will override those query parameters if they're
+provided. To use a transform in a macro, set the 'transform' field to
+either a string or a callable. Macros can make use of transforms defined
+in ``TRANSFORMS``.
+
+Example: ::
+
     MACROS = {
       'unique' : {
         'fetch' : lambda handle,key: handle.hlen(key)
@@ -339,10 +393,27 @@ The configuration files can include 1 or more of the following: ::
         'join_rows' : lambda rows: sum(rows),
       }
     }
+
+DEBUG
+-----
+
+A boolean or integer to define the amount of log output. 
+
+* 0 or ``False``
+
+  Only errors are logged.
+
+* 1 or ``True``
+
+  Basic information is logged, should not generate substantial output.
+
+* 2
+
+  Significant information is logged, particularly from the ``karbon`` process.
     
 
 Debugging
----------
+=========
 
 Debugging a schema or set of schemas can pose a challenge. Torus ships with ``schema_debug``,
 a tool for testing any number of input strings against any number of schemas. It will 
@@ -375,7 +446,7 @@ files loaded by ``karbon``, and then signal the process to reload with the
 command ``kill -SIGHUP `pidof karbon```.
 
 Performance Testing
--------------------
+===================
 
 To test your schema for performance and regressions, torus includes 
 ``schema_test``. The tool looks for ``generator`` definitions in schemas,

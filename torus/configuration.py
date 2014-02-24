@@ -6,6 +6,7 @@ https://github.com/agoragames/torus/blob/master/LICENSE.txt
 
 import imp
 import hashlib
+import logging
 
 from torus.schema import Schema, long_or_float
 from torus.aggregates import Aggregates
@@ -96,15 +97,15 @@ class Configuration(object):
       stored = schema.store(stat, val, timestamp)
       if self._debug:
         if stored:
-          print 'STOR', stat, val, timestamp
+          logging.debug('STOR %s %s %.06f'%(stat, val, timestamp))
         elif self._debug > 1:
-          print 'SKIP', stat, val, timestamp
+          logging.debug('SKIP %s %s %.06f'%(stat, val, timestamp))
     
     # Infinite loop is prevented by match() implementation
     for ag in aggregates:
       processed = self.process(ag, val, timestamp, seen=seen)
       if self._debug and processed:
-        print 'AGRT', ag, 'FROM', stat, val, timestamp
+        logging.debug('AGRT %s FROM %s %s %.06f'%(ag, stat, val, timestamp))
 
     return True
 

@@ -6,6 +6,7 @@ https://github.com/agoragames/torus/blob/master/LICENSE.txt
 
 import re
 import time
+import logging
 
 import ujson
 from urlparse import *
@@ -43,6 +44,12 @@ class Web(WSGIServer):
     self._configuration = kwargs.get('configuration')
     super(Web,self).__init__( (self.host,int(self.port)), self.handle_request, log=None )
 
+  def _log_context(self, env):
+    '''
+    Return the context to include in the log statement.
+    '''
+    return env.get('HTTP_X_FORWARDED_FOR', env.get('REMOTE_ADDR','unknown'))
+
   def handle_request(self, env, start_response):
     if not self._configuration.debug:
       return self._process_request(env, start_response)
@@ -58,7 +65,7 @@ class Web(WSGIServer):
       return self._process_request(env, _start_response)
     finally:
       t1 = time.time()
-      print "%s %.03f %s?%s"%( env['_TORUS_RESPONSE_CODE'], t1-t0, env['PATH_INFO'], env['QUERY_STRING'])
+      logging.info("%s %s %.03f %s?%s"%( self._log_context(env), env['_TORUS_RESPONSE_CODE'], t1-t0, env['PATH_INFO'], env['QUERY_STRING']))
     return []
 
   def _process_request(self, env, start_response):
@@ -94,8 +101,7 @@ class Web(WSGIServer):
       return []
       
     except Exception as e:
-      import traceback
-      traceback.print_exc()
+      logging.exception( self._log_context(env) )
       start_response( '500 Internal Server Error', 
         [('content-type','application/json')] )
       return []
