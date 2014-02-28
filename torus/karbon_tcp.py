@@ -7,6 +7,7 @@ https://github.com/agoragames/torus/blob/master/LICENSE.txt
 import socket
 import time
 import re
+import logging
 
 import gevent
 from gevent.server import StreamServer
@@ -38,6 +39,7 @@ class KarbonTcp(StreamServer):
     # We could in the future make these configurable
     sock.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
     sock.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE,1)
+    peer_name = sock.getpeername()
 
     while True:
       try:
@@ -47,8 +49,7 @@ class KarbonTcp(StreamServer):
           sock.close()
           return
       except EnvironmentError as e:
-        import traceback
-        traceback.print_exc()
+        logging.exception( 'Error reading from %s'%(peer_name) )
         sock.close()
         return
 
@@ -70,13 +71,13 @@ class KarbonTcp(StreamServer):
         if not len(line.strip()): continue
 
         if self._configuration.debug>1:
-          print 'RECV', line
+          logging.debug('RECV %s'%(line) )
         try:
           match = LINE_MATCH.match( line.strip() )
           if match:
             stat,val,timestamp = match.groups()
           elif self._configuration.debug>1:
-            print 'BAD MATCH', line.strip()
+            logging.warning('BAD MATCH %s'%(line.strip()))
             continue
         except ValueError:
           # TODO: Store like stasd failed lines
@@ -86,7 +87,6 @@ class KarbonTcp(StreamServer):
         self._configuration.process(stat,val,timestamp)
       t1 = time.time()
       if self._configuration.debug:
-        print 'DONE', num, t1-t0, float(num)/float(t1-t0)
+        logging.debug('DONE %d %.06f %.06f'%(num, t1-t0, float(num)/float(t1-t0)))
     except Exception as e:
-      import traceback
-      traceback.print_exc()
+      logging.exception('ERROR processing lines')
