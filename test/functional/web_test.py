@@ -56,7 +56,7 @@ config = Configuration()
 for name,spec in SCHEMAS.iteritems():
   config.load_schema( name, spec )
 config.load_aggregate( AGGREGATES )
-config._transforms['unique'] = lambda dct: len(dct)
+config._transforms['unique'] = lambda dct, duration: len(dct)
 
 config._macros['redis_keylen'] = {
   'fetch' : lambda handle, key: handle.hlen(key),
