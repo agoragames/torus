@@ -1,3 +1,14 @@
+0.7.0
+=====
+
+Upgrade to kairos 0.10.0 with breaking change for custom transforms.
+
+Switch to python logger from print statements.
+
+Switched to `logging.exception()` from `traceback.print_exc()` calls.
+
+Added on_load and on_reload callbacks for configurations.
+
 0.6.5
 =====
 
