@@ -33,7 +33,7 @@ class Configuration(object):
     Load a file and cache the rename for future reloading.
     '''
     self._files.append( fname )
-    self._load_source( fname )
+    self._load_source( fname, notify='on_load' )
 
   def reload(self):
     '''
@@ -46,7 +46,7 @@ class Configuration(object):
     self._macros = {}
     
     for fname in self._files:
-      self._load_source( fname )
+      self._load_source( fname, notify='on_reload' )
 
   def transform(self, name):
     '''
@@ -115,7 +115,7 @@ class Configuration(object):
   def load_aggregate(self, spec):
     self._aggregates.add( spec )
 
-  def _load_source(self, fname):
+  def _load_source(self, fname, notify='on_load'):
     '''
     Load the file source.
     '''
@@ -140,3 +140,6 @@ class Configuration(object):
         self._macros[name] = macro
       
       self._debug = getattr(mod, 'DEBUG', self._debug)
+
+      if callable( getattr(mod, notify, None) ):
+        getattr(mod, notify)()

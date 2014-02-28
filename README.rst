@@ -226,6 +226,18 @@ key-value pairs in a schema definition will be passed to the timeseries
 `constructor <https://github.com/agoragames/kairos#constructor>`_.
 The configuration files can include 1 or more of the following.
 
+on_load
+-------
+
+If this is a callable, will be called the first time the configuration is 
+loaded. Useful for one-time configuration such as Sentry logging handlers.
+
+on_reload
+---------
+
+If this is a callable, will be called when the configuration module is
+reloaded.
+
 SCHEMAS
 -------
 
