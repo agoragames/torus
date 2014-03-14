@@ -76,8 +76,9 @@ class KarbonTcp(StreamServer):
           match = LINE_MATCH.match( line.strip() )
           if match:
             stat,val,timestamp = match.groups()
-          elif self._configuration.debug>1:
-            logging.warning('BAD MATCH %s'%(line.strip()))
+          else:
+            if self._configuration.debug>1:
+              logging.warning('BAD MATCH %s'%(line.strip()))
             continue
         except ValueError:
           # TODO: Store like stasd failed lines

@@ -3,6 +3,7 @@ Copyright (c) 2013, Agora Games, LLC All rights reserved.
 
 https://github.com/agoragames/torus/blob/master/LICENSE.txt
 '''
+import logging
 from collections import OrderedDict
 
 from chai import Chai
@@ -29,3 +30,13 @@ class KarbonTcpTest(Chai):
       stat  foo bar        1234.5678
       stats.statsd.bad_lines_seen 0 1391710252
     ''')
+
+  def test_process_lines_when_bad_match(self):
+    stub( self.karbon._configuration.process )
+    stub( logging.exception )
+    
+    self.karbon._configuration.debug = 1
+
+    self.karbon._process_lines('')
+    self.karbon._process_lines('''
+      stat\tfoo\tbar''')
