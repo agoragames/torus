@@ -372,13 +372,13 @@ Example: ::
 TRANSFORMS
 ----------
 
-A named mapping of functions which can be used in queries. 
+A named mapping of functions which can be used in queries. See `kairos <https://github.com/agoragames/kairos#transform>_` documentation for details.
 
 Example: ::
 
     TRANSFORMS = {
       # Returns the number of elements
-      'size' : lambda row: len(row)
+      'size' : lambda row, duration: len(row)
     }
 
 MACROS
