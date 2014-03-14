@@ -372,7 +372,9 @@ Example: ::
 TRANSFORMS
 ----------
 
-A named mapping of functions which can be used in queries. See `kairos <https://github.com/agoragames/kairos#transform>_` documentation for details.
+A named mapping of functions which can be used in queries. See `kairos`__ documentation for details.
+
+__ https://github.com/agoragames/kairos#transform
 
 Example: ::
 
