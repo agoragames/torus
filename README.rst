@@ -556,6 +556,7 @@ Roadmap
 =======
 
 * Record metrics on karbon and torus usage
+* Improve parsing of ``stat`` parameter with `pyparsing <https://pythonhosted.org/pyparsing/>`_ library
 * Add "dead letter" support for tracking stats that don't match any schema
 * Add stat delete endpoint to ``torus``
 * Command line tools for querying data and optionally plotting using `bashplotlib <http://www.yaksis.com/posts/bashplotlib.html>`_
